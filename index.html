@@ -6,6 +6,7 @@
     <title>Codex</title>
     <style>
         @font-face {
+            /* Setting Fonts */
             font-family: "Orbitron";
             src: url("Resources/Fonts/Orbitron/Orbitron-VariableFont_wght.ttf") format("truetype");
             font-weight: normal;
@@ -19,6 +20,7 @@
             font-style: normal;
         }
 
+        /* Create css classes for fonts */
         .font-victor-mono {
             font-family: "VictorMono";
         }
@@ -27,64 +29,101 @@
             font-family: "Orbitron";
         }
 
+
+
+        /* body haves margin on its own so we remove it, also setting font and background colors here */
         body {
             padding: 0px;
             margin: 0px;
+            /* hex */
             background-color: #000;
             color: #FFF;
         }
 
         .codex-border {
+            /* set a 0 pixel wide solid and transparent border (transparent because we will use a texture for it) */
             border: 0px solid transparent;
+            /* specify the width of each side of the border: top/bottom 8px, left/right 16px */
             border-width: 8px 16px;
+            /* image thats going to be used for the border */
             border-image-source: url("Resources/Images/Border.png");
-            border-image-slice: 8 16 8 16 fill;
+
+            /* 
+            slices the border image into regions using the specified pixels width
+                - top-bottom: the top & bottom 8 pixels of the specified image will be used as the top border
+                - right-left: the right & left 16 pixels of the specified image will be used as the top border
+                fill makes the center of the image fill the inside of the element
+            */
+            border-image-slice: 8 16 fill;
+
+            /* repeat the borders texture if its size is not enough */
             border-image-repeat: repeat;
+            /* the background of the main div */
             background-color: #0c0c0c;
         }
 
         .ship-header {
+            /* set the font size to be big */
             font-size: larger;
+            /* make the font bolder */
             font-weight: bold;
+            /* change text color */
             color: #A9CBD4;
         }
 
         .ship-class {
+            /* specify the font size as pixels */
             font-size: 12px;
+            /* set the text color */
             color: #767676;
         }
 
         .mb-4 {
+            /* add a bit of push to the bottom */
             margin-bottom: 8px;
         }
 
         .ship-class::after {
+            /*
+                for this just read, im not good enough to explain it
+                https://developer.mozilla.org/en-US/docs/Web/CSS/::after 
+                https://developer.mozilla.org/en-US/docs/Web/CSS/attr
+                https://developer.mozilla.org/en-US/docs/Web/CSS/--*
+                */
             content: attr(--data-class-name);
             color: var(--data-class-color);
         }
 
         .d-flex {
+            /* set the display to flex so we can center and align the contents of the element */
             display: flex;
         }
 
         .ship-lore {
+            /* the big white text, set its font size and text color */
             font-size: 12px;
             color: white;
+            /* width is 80% to leave some space for the image */
             width: 80%;
         }
 
         .ship-image {
+            /* use the 20% width left over by the lore, height is specific for visual reasons */
             width: 20%;
             height: 235px;
         }
 
         .center {
+            /* set aligning of text (and some elements) to center */
             text-align: center;
         }
 
         .stats-header {
+            /* the big blue lines, set the font size and weight so it applies to the children of this element */
             font-size: 12px;
             font-weight: lighter;
+            /* as we have two tabs of stats, i wanted it to be seperated to each end and space around just does that */
+            /* i suggest playing https://flexboxfroggy.com/ to really learn how to use display flex and justify*s */
             justify-content: space-around;
         }
 
@@ -97,70 +136,135 @@
         }
 
         .d-block {
+            /* 
+                the default display is block, needed this because the element was inheriting flex
+                when i needed block 
+            */
             display: block;
         }
 
         .logistical-content {
+            /*
+                pushes elements to the sides, 
+                different from space-around because it doesnt leave spaces at the sides when space-around leaves a bit of space 
+            */
             justify-content: space-between;
         }
 
         ul {
+            /* 
+                ul haves margin and padding and all the list stuff
+                but i just needed its easy way of making lines so i remove them here
+            */
             margin: 0px;
             padding: 0px;
             list-style-type: none;
         }
 
+        /*
+            what :is does is that it makes the css apply to all the classes & elements you specify in it 
+            in this case its saying:
+            "get .combat-content and .logistical-content then get the ul element under them and apply this css on them"
+        */
         :is(.combat-content, .logistical-content) ul {
-
+            /* adds a bit of space so it looks better */
             margin-top: 2px;
+
+            /* i have used the text-align: center; before the uls, so i reset them here */
             text-align: start;
-            width: 48%;
+
+            /* 
+                as we have two of them and i dont want them to squish on themselves 
+                (not setting width makes them be smallest they can be)
+                i set their width to 49%, its not 50% because i also want spacing between the contents
+            */
+            width: 49%;
         }
 
         .combat-content ul {
+            /* 
+                yes, we did set every ul under .combat-content to 49% in the last class,
+                but we override it here so it takes the whole space it can have because theres just one column in
+                .combat-content
+            */
             width: 100%;
         }
 
+        /*
+            what this says is
+            "get all spans under lis under uls in elements that have .combat-content as their class and apply this css to them"
+         */
         .combat-content ul li span {
+            /* 
+                all the spans in this .combat-content ul li span have their color as yellow so its better to just set it here 
+                rather than set it inline
+            */
             color: #FFDD00;
         }
 
+        /* similar to the :is few lines ago, just gets spans under the uls this time */
         :is(.combat-content, .logistical-content) ul span {
+            /* set the float to right so every span goes to the end of its own line */
             float: right;
             /* default coloring */
             color: #E0FFEF;
         }
 
         .stat-yellow {
-            /* too many of them soo */
+            /* as theres too many yellow stats, i also made a class for the color yellow */
+            /* 
+                !important gives this effect priority over other effects 
+                (it will use this color rather than other colors)
+             */
             color: #FFDD00 !important;
         }
 
-        :is(.ship-ordnance table tr td) {
+        /* get tds under trs under tables under elements with .ship-ordnance class */
+        .ship-ordnance table tr td {
             font-size: 12px;
+            /* 
+                aligns the text in tds (table datas) to the top of their element rather than center themselves 
+            */
             vertical-align: top;
         }
 
+        /* gets the first child thats a td under a tr */
+        /* more info on :first-child https://developer.mozilla.org/en-US/docs/Web/CSS/:first-child */
         .ship-ordnance table tr td:first-child {
             width: 85px;
         }
     </style>
 </head>
 
-<body class="font-victor-mono">
+
+
+<body class="font-victor-mono"> <!-- set the global font to be victor mono -->
+
+    <!-- 
+        what this style does is that it sets the element to be a grid, makes it place all the items it haves to its center 
+        and sets its height to 100% 
+    -->
     <div style="display: grid; place-items: center; height: 100%;">
 
+        <!-- set the width and height here for visual reasons -->
         <div class="codex-border" style="width: 800px; height: 600px;">
 
+            <!-- we want spacing below this -->
             <div class="ship-header font-orbitron mb-4">
+                <!-- 
+                    browsers ignore multiple space characters ( ), &nbsp; is "non break space bar" which the browser doesnt ignore
+                    so we can have multiple space bar characters
+                -->
                 ISS Rigel Flyer,&nbsp; Nebula-class Civilian Transport
             </div>
 
-            <div class="ship-class  mb-4" --data-class-name="Midline" style="--data-class-color: #DAC767">
-                Design
-                Type: </div>
+            <!-- again, for attr and vals check the documentation linked above -->
+            <div class="ship-class mb-4" --data-class-name="Midline" style="--data-class-color: #DAC767">
+                Design Type: </div>
 
+            <!-- set the display to flex as we want elements that are next to each other -->
             <div class="d-flex">
+
                 <div class="ship-lore">
                     The voluminous but ungainly hull of the Mbaye-Gogol 430 "Nebula' does little to enhance
                     the romance of interstellar travel but it does ensure a respectable passanger and cargo
@@ -169,21 +273,34 @@
                 </div>
 
                 <div class="ship-image center">
+                    <!-- as much as its "text-align" it aligns more than just text, here it aligns the image to center -->
                     <img src="Resources/Images/Nebula.webp">
                 </div>
             </div>
 
+            <!-- here i set text align to center so that the text in the header elements are centered -->
             <div class="d-flex stats-header center mb-4">
-                <div class="d-block" style="width:65%;">
+                <!-- width: 65% for visual reasons -->
+                <!-- 
+                    set it to display block because we dont want these elements to be next to each other 
+                    but rather want them below one another
+                -->
+                <div class="d-block" style="width: 65%;">
                     <div class="logistical-header">
                         Logistical data
                     </div>
 
+                    <!-- here, however, we want these two lists to be next to each other -->
                     <div class="logistical-content d-flex">
                         <ul>
                             <li>CR per deployment
+                                <!-- we setted the spans to float to the end of the line in the css above -->
                                 <span>20%</span>
                             </li>
+                            <!-- 
+                                &nbsp; is used to give a feeling of "list" here
+                                using anything else would get too spagetti
+                            -->
                             <li>&nbsp;Recovery rate (per day)
                                 <span>4%</span>
                             </li>
@@ -191,14 +308,22 @@
                                 <span>4</span>
                             </li>
                             <li>&nbsp;Deployment points
+                                <!-- 
+                                    inline styles are used here 
+                                    as creating classes for a single element isnt really practical
+                                -->
                                 <span style="color: #40D0DF;">4</span>
                             </li>
-                            <li>Peak performance (sec) <!-- its just SLİGHTLY lighter than the defualt -->
+                            <li>Peak performance (sec)
                                 <span style="color: #F0FFF0;">240</span>
                             </li>
                             <li>Crew complement
                                 <span style="color: #00FFC0;">15 / 15</span>
                             </li>
+                            <!--
+                                an li with &nbsp; in it as leaving it without any content 
+                                (or just putting the space character) just makes it not create an empty line
+                            -->
                             <li> &nbsp; </li>
                             <li>Hull size
                                 <span class="stat-yellow">Destroyer</span>
@@ -230,11 +355,13 @@
                                 <span class="stat-yellow">2</span>
                             </li>
                             <li>Sensor profile
+                                <!-- another span is used here for extra coloring -->
                                 <span class="stat-yellow">120&nbsp;
                                     <span style="color: #F07030;">(+60)</span>
                                 </span>
                             </li>
                             <li>Sensor strenght
+                                <!-- just putting space character after 120 doesnt put a space between the other text -->
                                 <span class="stat-yellow">30&nbsp;
                                     <span style="color: #F07030;">(-30)</span>
                                 </span>
@@ -243,11 +370,16 @@
                     </div>
                 </div>
 
+                <!-- left some % of padding here for looks -->
                 <div style="width: 33%;">
                     <div class="combat-header">
                         Combat performance
                     </div>
                     <div class="combat-content">
+                        <!-- 
+                            remember that we setted every span under li thats under ul thats under an element that haves 
+                            the .combat-content class to be yellow
+                        -->
                         <ul>
                             <li>Hull integrity
                                 <span>3000</span>
@@ -281,12 +413,16 @@
                 </div>
             </div>
 
-            <br> <!-- need a bit more push -->
+            <br> <!-- needed a bit more push -->
             <div class="ship-ordnance">
+                <!-- couldve made two lists that were next to each other, but for this i feel like table is easier to make -->
                 <table>
+                    <!-- tables doesnt always need a header -->
                     <tr>
+                        <!-- remember that we setted the first tds in each row element to have 85 pixels of width -->
                         <td class="ship-ordnance-title">System:</td>
                         <td>
+                            <!-- vertical-align: top; were needed here, try removing it and seeing how it looks yourself! -->
                             <span class="stat-yellow">Flare Launcher</span>
                             <br>
                             Laurches flares to confuse the guidance systems of nearby enemy missiles.
@@ -296,6 +432,7 @@
                     <tr>
                         <td class="ship-ordnance-title">Mounts:</td>
                         <td>
+                            <!-- span is pretty usefull for inline coloring -->
                             <span class="stat-yellow">4x</span> Small Ballistic
                         </td>
                     </tr>
@@ -315,7 +452,6 @@
                     </tr>
                 </table>
             </div>
-
 
         </div>
 
