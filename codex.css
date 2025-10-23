@@ -1,0 +1,424 @@
+@font-face {
+    font-family: "Orbitron";
+    src: url("Resources/Fonts/Orbitron/Orbitron-VariableFont_wght.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "VictorMono";
+    src: url("Resources/Fonts/Victor_Mono/static/VictorMono-ExtraLight.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+:root{
+    --scrollbar-right-margin: 4px;
+    --scrollbar-right-margin-after-resize: 2px;
+    --simplebar-placeholder-max-width: 1000px;
+}
+
+*::after,
+*::before {
+    user-select: text;
+    /* Standard */
+    -webkit-user-select: text;
+    /* Chrome/Safari */
+    -moz-user-select: text;
+    /* Firefox */
+    -ms-user-select: text;
+    /* IE/Edge */
+}
+
+/* worth the try */
+
+.font-victor-mono {
+    font-family: "VictorMono";
+}
+
+.font-orbitron {
+    font-family: "Orbitron";
+}
+
+body {
+    padding: 0px;
+    margin: 0px;
+    background-color: #000;
+    color: #FFF;
+}
+
+body,
+td {
+    font-size: 10px;
+}
+
+.center-grid {
+    display: grid;
+    place-items: center;
+    height: 100%;
+}
+
+.codex {
+    border: 0px solid transparent;
+    border-width: 8px;
+    border-image-source: url("Resources/Images/Border2.png");
+    border-image-slice: 32 fill;
+    border-image-repeat: repeat;
+    background-color: #000;
+    /* 0.8x of original (i think) res */
+    width: 1024px;
+    height: 720px;
+}
+
+
+.mb-4 {
+    margin-bottom: 8px;
+}
+
+.d-flex {
+    display: flex;
+}
+
+.center {
+    text-align: center;
+}
+
+.stats-header,
+.ship-header {
+    font-weight: lighter;
+    justify-content: space-between;
+    /* color: #A6D8F9; */
+
+}
+
+.logistical-content,
+.combat-content * {
+    color: #FFF;
+}
+
+:is(.logistical-header, .combat-header, .ship-header, .search-header),
+.related-entries::before {
+    background-color: #15414D;
+    text-align: center;
+}
+
+:is(.logistical-header, .combat-header) {
+    margin-bottom: 8px;
+}
+
+.d-block {
+    display: block;
+}
+
+.logistical-content {
+    justify-content: space-between;
+}
+
+ul {
+    margin: 0px;
+    padding: 0px;
+    list-style-type: none;
+}
+
+td ul li {
+    display: inline;
+}
+
+:is(.combat-content, .logistical-content) ul {
+    /* margin-top: 2px; */
+    text-align: start;
+    width: 49%;
+}
+
+.combat-content ul {
+    width: 100%;
+}
+
+.combat-content ul li span:not([no-color]) {
+    color: #FFDD00;
+}
+
+:is(.combat-content, .logistical-content) ul span:not([no-color]) {
+    float: right;
+    color: #E0FFEF;
+}
+
+.ship-ordnance table tr td {
+    vertical-align: top;
+}
+
+
+/* #region pseudo classes */
+.ship-class::after {
+    content: attr(data-class-name);
+    color: var(--data-class-color);
+}
+
+.ship-price::after {
+    content: attr(data-price);
+    color: #FFDD00;
+}
+
+.related-entries::before {
+    content: "Related entries";
+    height: 16px;
+    display: block;
+    padding-top: 1px;
+    width: 100%;
+    margin-top: -16px;
+}
+
+td ul li::after {
+    content: ", ";
+}
+
+td ul li:last-child::after {
+    content: "";
+}
+
+/* #endregion */
+
+/* #region sizes of containers */
+
+.ship-ordnance table tr td:first-child {
+    width: 85px;
+}
+
+.search-bar {
+    width: 20% !important;
+    height: 100%;
+    flex-direction: column;
+}
+
+.search-bar-search-tb {
+    margin-top: auto;
+}
+
+.item-view {
+    width: 80% !important;
+}
+
+.scroll-bar-container {
+    height: 95%;
+    width: 100%;
+}
+
+.scroll-bar {
+    overflow-y: auto;
+    scrollbar-width: none;
+    scrollbar-gutter: stable;
+}
+
+.ship-stats {
+    width: 70%;
+    /* font-weight: lighter; */
+}
+
+.ship-image {
+    width: 30%;
+    height: 300px;
+}
+
+.ship-image img {
+    max-width: 100%;
+    max-height: 235px;
+}
+
+.justify-space-around {
+    justify-content: space-around;
+}
+
+.lower-content {
+    width: 100%;
+    justify-content: space-around;
+}
+
+.ship-lore {
+    color: white;
+    width: 70%;
+    border: 1px solid #15414D;
+    padding: 8px;
+    box-sizing: border-box;
+    font-size: 12px;
+}
+
+.ship-lore p {
+    margin-bottom: 0px;
+}
+
+.related-entries {
+    width: 27%;
+}
+
+.ship-price {
+    margin-bottom: 0px;
+}
+
+/* #endregion */
+
+/* #region colors */
+td ul li span:not([no-color]) {
+    color: #FFDD00 !important;
+}
+
+.stat-yellow {
+    color: #FFDD00 !important;
+}
+
+.stat-fuel {
+    color: #FC7C19 !important;
+}
+
+.stat-crew {
+    color: #00FFC0 !important;
+}
+
+.stat-dp {
+    color: #40D0DF !important;
+}
+
+.stat-white {
+    color: #F0FFF0 !important;
+}
+
+.stat-cargo {
+    color: #FFFFBF !important;
+}
+
+.stat-debuff {
+    color: #FD6300 !important;
+}
+
+.ship-class,
+.ship-price {
+    color: #767676;
+}
+
+input[type=text] {
+    background-color: #0D272F;
+    border: 1px solid #11303A;
+    color: #A8DBFC;
+    transition: all 0.5s ease;
+}
+
+input[type=text]:focus {
+    background-color: #10313B;
+    border: 1px solid #1F5E70;
+    outline: 0;
+}
+
+input[type=text]::placeholder {
+    transition: all 0.5s ease;
+    color: #737373;
+}
+
+input[type=text]:focus::placeholder {
+    color: #A3A3A3;
+}
+
+
+/* #endregion */
+
+/* #region scrollbar */
+
+.scroll-bar .simplebar-track,
+.scroll-bar .simplebar-track .simplebar-scrollbar,
+.scroll-bar .simplebar-track .simplebar-scrollbar::before {
+    transition: width 0.3s ease, background 0.3s ease, margin-right 0.3s ease;
+}
+
+.scroll-bar .simplebar-track .simplebar-scrollbar::before {
+    background: #77A8C2;
+    /* border-radius: 6px; */
+    opacity: 1 !important;
+}
+
+/* track on idle */
+.scroll-bar .simplebar-track {
+    background-color: #15414D;
+    width: 10px !important;
+    /* border-radius: 6px; */
+    margin-right: var(--scrollbar-right-margin);
+}
+
+.scroll-bar .simplebar-track:is(.simplebar-hover) .simplebar-scrollbar:is(.simplebar-hover):before {
+    width: 6px;
+    background: #77A8C2;
+}
+
+/* track on hover and drag */
+.scroll-bar .simplebar-track:is(.simplebar-hover),
+.scroll-bar:is(.simplebar-dragging) .simplebar-track {
+    width: 16px !important;
+    margin-right: var(--scrollbar-right-margin-after-resize)  !important;
+}
+
+.scroll-bar .simplebar-track:is(.simplebar-hover) .simplebar-scrollbar::before,
+.scroll-bar:is(.simplebar-dragging) .simplebar-track .simplebar-scrollbar::before {
+    background: #A0D1F0 !important;
+    width: 12px !important;
+}
+
+.simplebar-placeholder{
+    height: 686px !important;
+}
+
+/* #endregion */
+
+/* #region search list */
+
+.search-bar-text-box{
+    width: 98%;
+
+}
+
+.search-header {
+    width: 98%;
+    align-self: flex-start;
+}
+
+.search-bar-ship-list{
+    overflow-y: auto;
+    flex-direction: column;
+    height: fit-content;
+    width: 100%;
+}
+
+.search-bar-ship-list ul li {
+    margin-top: 4px;
+    /* margin-left: 8px; */
+    display: flex;
+    transition: background-color 0.5s ease;
+    width: 99%;
+    /* border-radius: 9px; */
+}
+
+.search-bar-ship-list ul li:hover {
+    background-color: #10303A;
+}
+
+.search-bar-ship-list ul li div:has(> img) {
+    width: 48px;
+    height: 48px;
+    text-align: center;
+    align-items: center;
+    display: flex;
+}
+
+.search-bar-ship-list ul li div div:first-child {
+    margin-top: 4px;
+    color: #A9DCFD;
+    margin-bottom: 4px;
+}
+
+.search-bar-ship-list ul li div div:nth-child(2) {
+    color: #989898;
+}
+
+.search-bar-ship-list ul li div img {
+    margin: auto;
+    max-width: 32px;
+    max-height: 32px;
+}
+
+/* #endregion */

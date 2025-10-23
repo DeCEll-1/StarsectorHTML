@@ -4,458 +4,237 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Codex</title>
-    <style>
-        @font-face {
-            /* Setting Fonts */
-            font-family: "Orbitron";
-            src: url("Resources/Fonts/Orbitron/Orbitron-VariableFont_wght.ttf") format("truetype");
-            font-weight: normal;
-            font-style: normal;
-        }
+    <link rel="stylesheet" href="./codex.css">
 
-        @font-face {
-            font-family: "VictorMono";
-            src: url("Resources/Fonts/Victor_Mono/VictorMono-VariableFont_wght.ttf") format("truetype");
-            font-weight: normal;
-            font-style: normal;
-        }
-
-        /* Create css classes for fonts */
-        .font-victor-mono {
-            font-family: "VictorMono";
-        }
-
-        .font-orbitron {
-            font-family: "Orbitron";
-        }
-
-
-
-        /* body haves margin on its own so we remove it, also setting font and background colors here */
-        body {
-            padding: 0px;
-            margin: 0px;
-            /* hex */
-            background-color: #000;
-            color: #FFF;
-        }
-
-        .codex-border {
-            /* set a 0 pixel wide solid and transparent border (transparent because we will use a texture for it) */
-            border: 0px solid transparent;
-            /* specify the width of each side of the border: top/bottom 8px, left/right 16px */
-            border-width: 8px 16px;
-            /* image thats going to be used for the border */
-            border-image-source: url("Resources/Images/Border.png");
-
-            /* 
-            slices the border image into regions using the specified pixels width
-                - top-bottom: the top & bottom 8 pixels of the specified image will be used as the top border
-                - right-left: the right & left 16 pixels of the specified image will be used as the top border
-                fill makes the center of the image fill the inside of the element
-            */
-            border-image-slice: 8 16 fill;
-
-            /* repeat the borders texture if its size is not enough */
-            border-image-repeat: repeat;
-            /* the background of the main div */
-            background-color: #0c0c0c;
-        }
-
-        .ship-header {
-            /* set the font size to be big */
-            font-size: larger;
-            /* make the font bolder */
-            font-weight: bold;
-            /* change text color */
-            color: #A9CBD4;
-        }
-
-        .ship-class {
-            /* specify the font size as pixels */
-            font-size: 12px;
-            /* set the text color */
-            color: #767676;
-        }
-
-        .mb-4 {
-            /* add a bit of push to the bottom */
-            margin-bottom: 8px;
-        }
-
-        .ship-class::after {
-            /*
-                for this just read, im not good enough to explain it
-                https://developer.mozilla.org/en-US/docs/Web/CSS/::after 
-                https://developer.mozilla.org/en-US/docs/Web/CSS/attr
-                https://developer.mozilla.org/en-US/docs/Web/CSS/--*
-                */
-            content: attr(--data-class-name);
-            color: var(--data-class-color);
-        }
-
-        .d-flex {
-            /* set the display to flex so we can center and align the contents of the element */
-            display: flex;
-        }
-
-        .ship-lore {
-            /* the big white text, set its font size and text color */
-            font-size: 12px;
-            color: white;
-            /* width is 80% to leave some space for the image */
-            width: 80%;
-        }
-
-        .ship-image {
-            /* use the 20% width left over by the lore, height is specific for visual reasons */
-            width: 20%;
-            height: 235px;
-        }
-
-        .center {
-            /* set aligning of text (and some elements) to center */
-            text-align: center;
-        }
-
-        .stats-header {
-            /* the big blue lines, set the font size and weight so it applies to the children of this element */
-            font-size: 12px;
-            font-weight: lighter;
-            /* as we have two tabs of stats, i wanted it to be seperated to each end and space around just does that */
-            /* i suggest playing https://flexboxfroggy.com/ to really learn how to use display flex and justify*s */
-            justify-content: space-around;
-        }
-
-        .logistical-header {
-            background-color: #15414D;
-        }
-
-        .combat-header {
-            background-color: #15414D;
-        }
-
-        .d-block {
-            /* 
-                the default display is block, needed this because the element was inheriting flex
-                when i needed block 
-            */
-            display: block;
-        }
-
-        .logistical-content {
-            /*
-                pushes elements to the sides, 
-                different from space-around because it doesnt leave spaces at the sides when space-around leaves a bit of space 
-            */
-            justify-content: space-between;
-        }
-
-        ul {
-            /* 
-                ul haves margin and padding and all the list stuff
-                but i just needed its easy way of making lines so i remove them here
-            */
-            margin: 0px;
-            padding: 0px;
-            list-style-type: none;
-        }
-
-        /*
-            what :is does is that it makes the css apply to all the classes & elements you specify in it 
-            in this case its saying:
-            "get .combat-content and .logistical-content then get the ul element under them and apply this css on them"
-        */
-        :is(.combat-content, .logistical-content) ul {
-            /* adds a bit of space so it looks better */
-            margin-top: 2px;
-
-            /* i have used the text-align: center; before the uls, so i reset them here */
-            text-align: start;
-
-            /* 
-                as we have two of them and i dont want them to squish on themselves 
-                (not setting width makes them be smallest they can be)
-                i set their width to 49%, its not 50% because i also want spacing between the contents
-            */
-            width: 49%;
-        }
-
-        .combat-content ul {
-            /* 
-                yes, we did set every ul under .combat-content to 49% in the last class,
-                but we override it here so it takes the whole space it can have because theres just one column in
-                .combat-content
-            */
-            width: 100%;
-        }
-
-        /*
-            what this says is
-            "get all spans under lis under uls in elements that have .combat-content as their class and apply this css to them"
-         */
-        .combat-content ul li span {
-            /* 
-                all the spans in this .combat-content ul li span have their color as yellow so its better to just set it here 
-                rather than set it inline
-            */
-            color: #FFDD00;
-        }
-
-        /* similar to the :is few lines ago, just gets spans under the uls this time */
-        :is(.combat-content, .logistical-content) ul span {
-            /* set the float to right so every span goes to the end of its own line */
-            float: right;
-            /* default coloring */
-            color: #E0FFEF;
-        }
-
-        .stat-yellow {
-            /* as theres too many yellow stats, i also made a class for the color yellow */
-            /* 
-                !important gives this effect priority over other effects 
-                (it will use this color rather than other colors)
-             */
-            color: #FFDD00 !important;
-        }
-
-        /* get tds under trs under tables under elements with .ship-ordnance class */
-        .ship-ordnance table tr td {
-            font-size: 12px;
-            /* 
-                aligns the text in tds (table datas) to the top of their element rather than center themselves 
-            */
-            vertical-align: top;
-        }
-
-        /* gets the first child thats a td under a tr */
-        /* more info on :first-child https://developer.mozilla.org/en-US/docs/Web/CSS/:first-child */
-        .ship-ordnance table tr td:first-child {
-            width: 85px;
-        }
-    </style>
+    <link rel="stylesheet" href="Resources/libs/SimpleBar/simplebar.css">
 </head>
 
+<body class="font-victor-mono">
 
 
-<body class="font-victor-mono"> <!-- set the global font to be victor mono -->
+    <div class="center-grid">
 
-    <!-- 
-        what this style does is that it sets the element to be a grid, makes it place all the items it haves to its center 
-        and sets its height to 100% 
-    -->
-    <div style="display: grid; place-items: center; height: 100%;">
+        <div class="codex d-flex">
 
-        <!-- set the width and height here for visual reasons -->
-        <div class="codex-border" style="width: 800px; height: 600px;">
+            <div class="search-bar d-flex">
 
-            <!-- we want spacing below this -->
-            <div class="ship-header font-orbitron mb-4">
-                <!-- 
-                    browsers ignore multiple space characters ( ), &nbsp; is "non break space bar" which the browser doesnt ignore
-                    so we can have multiple space bar characters
-                -->
-                ISS Rigel Flyer,&nbsp; Nebula-class Civilian Transport
-            </div>
-
-            <!-- again, for attr and vals check the documentation linked above -->
-            <div class="ship-class mb-4" --data-class-name="Midline" style="--data-class-color: #DAC767">
-                Design Type: </div>
-
-            <!-- set the display to flex as we want elements that are next to each other -->
-            <div class="d-flex">
-
-                <div class="ship-lore">
-                    The voluminous but ungainly hull of the Mbaye-Gogol 430 "Nebula' does little to enhance
-                    the romance of interstellar travel but it does ensure a respectable passanger and cargo
-                    capacity for a ship of its class. Indeed. the Nebula has Slowly come to dominate mid-tier
-                    passanger service since the muted reception of its first line of production.
+                <div id="search-bar-header" class="search-header">
+                    Search results
                 </div>
 
-                <div class="ship-image center">
-                    <!-- as much as its "text-align" it aligns more than just text, here it aligns the image to center -->
-                    <img src="Resources/Images/Nebula.webp">
+                <!-- the search bar -->
+                <div class="search-bar-ship-list scroll-bar scroll-bar-container" data-simplebar style="--scrollbar-right-margin: 4px; --scrollbar-right-margin-after-resize:4.3px">
+                    <ul id="search-bar-ship-list-ul">
+                    </ul>
+                </div>
+
+                <div class="search-bar-search-tb">
+                    <input id="search-bar-text-box" class="search-bar-text-box" type="text"
+                    placeholder="Search for ships..."
+                    onchange   = "myHandler();"
+                    oninput    = "this.onchange();"
+                    >
+                    <!-- onkeyup="if(event.key === 'Enter'){ updateCodex(this.value); event.preventDefault()}" -->
                 </div>
             </div>
 
-            <!-- here i set text align to center so that the text in the header elements are centered -->
-            <div class="d-flex stats-header center mb-4">
-                <!-- width: 65% for visual reasons -->
-                <!-- 
-                    set it to display block because we dont want these elements to be next to each other 
-                    but rather want them below one another
-                -->
-                <div class="d-block" style="width: 65%;">
-                    <div class="logistical-header">
-                        Logistical data
-                    </div>
+            <div class="item-view">
+                <div id="ship_name_header" class="ship-header mb-4"></div>
 
-                    <!-- here, however, we want these two lists to be next to each other -->
-                    <div class="logistical-content d-flex">
-                        <ul>
-                            <li>CR per deployment
-                                <!-- we setted the spans to float to the end of the line in the css above -->
-                                <span>20%</span>
-                            </li>
-                            <!-- 
-                                &nbsp; is used to give a feeling of "list" here
-                                using anything else would get too spagetti
-                            -->
-                            <li>&nbsp;Recovery rate (per day)
-                                <span>4%</span>
-                            </li>
-                            <li>&nbsp;Recovery cost (supplies)
-                                <span>4</span>
-                            </li>
-                            <li>&nbsp;Deployment points
-                                <!-- 
-                                    inline styles are used here 
-                                    as creating classes for a single element isnt really practical
-                                -->
-                                <span style="color: #40D0DF;">4</span>
-                            </li>
-                            <li>Peak performance (sec)
-                                <span style="color: #F0FFF0;">240</span>
-                            </li>
-                            <li>Crew complement
-                                <span style="color: #00FFC0;">15 / 15</span>
-                            </li>
-                            <!--
-                                an li with &nbsp; in it as leaving it without any content 
-                                (or just putting the space character) just makes it not create an empty line
-                            -->
-                            <li> &nbsp; </li>
-                            <li>Hull size
-                                <span class="stat-yellow">Destroyer</span>
-                            </li>
-                            <li>Ordnance points
-                                <span class="stat-yellow">40</span>
-                            </li>
-                        </ul>
-                        <ul>
-                            <li>Maintenance (supplies/mo)
-                                <span>4.0</span>
-                            </li>
-                            <li>Cargo capacity
-                                <span style="color: #FFFFBF;">120</span>
-                            </li>
-                            <li>Maximum crew
-                                <span style="color: #00FFC0;">400</span>
-                            </li>
-                            <li>Skeleton crew required
-                                <span style="color: #00FFC0;">15</span>
-                            </li>
-                            <li>Fuel capacity
-                                <span style="color: #E0784F;">80</span>
-                            </li>
-                            <li>Maximum burn
-                                <span class="stat-yellow">8</span>
-                            </li>
-                            <li>Fuel / light year, jump cost
-                                <span class="stat-yellow">2</span>
-                            </li>
-                            <li>Sensor profile
-                                <!-- another span is used here for extra coloring -->
-                                <span class="stat-yellow">120&nbsp;
-                                    <span style="color: #F07030;">(+60)</span>
-                                </span>
-                            </li>
-                            <li>Sensor strenght
-                                <!-- just putting space character after 120 doesnt put a space between the other text -->
-                                <span class="stat-yellow">30&nbsp;
-                                    <span style="color: #F07030;">(-30)</span>
-                                </span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+                <div class="scroll-bar scroll-bar-container" data-simplebar>
 
-                <!-- left some % of padding here for looks -->
-                <div style="width: 33%;">
-                    <div class="combat-header">
-                        Combat performance
-                    </div>
-                    <div class="combat-content">
-                        <!-- 
-                            remember that we setted every span under li thats under ul thats under an element that haves 
-                            the .combat-content class to be yellow
-                        -->
-                        <ul>
-                            <li>Hull integrity
-                                <span>3000</span>
-                            </li>
-                            <li>Armor rating
-                                <span>175</span>
-                            </li>
-                            <li>Defense
-                                <span>Front Shield</span>
-                            </li>
-                            <li>Shield arc
-                                <span>150</span>
-                            </li>
-                            <li>Shield upkeep/sec
-                                <span>43</span>
-                            </li>
-                            <li>Shield flux/damage
-                                <span>1</span>
-                            </li>
-                            <li>Flux capacity
-                                <span>1500</span>
-                            </li>
-                            <li>Flux dissipation
-                                <span>85</span>
-                            </li>
-                            <li>Top speed
-                                <span>55</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+                    <div class="d-flex mb-4 justify-space-around ">
 
-            <br> <!-- needed a bit more push -->
-            <div class="ship-ordnance">
-                <!-- couldve made two lists that were next to each other, but for this i feel like table is easier to make -->
-                <table>
-                    <!-- tables doesnt always need a header -->
-                    <tr>
-                        <!-- remember that we setted the first tds in each row element to have 85 pixels of width -->
-                        <td class="ship-ordnance-title">System:</td>
-                        <td>
-                            <!-- vertical-align: top; were needed here, try removing it and seeing how it looks yourself! -->
-                            <span class="stat-yellow">Flare Launcher</span>
+                        <div class="ship-stats">
+                            <div class="d-flex stats-header center mb-4">
+
+                                <div class="d-block" style="width: 65%;">
+                                    <div class="logistical-header">
+                                        Logistical data
+                                    </div>
+
+
+                                    <div class="logistical-content d-flex">
+                                        <ul>
+                                            <li>CR per deployment
+                                                <span id="cr_deployment"> </span>
+                                            </li>
+
+                                            <li>&nbsp;Recovery (/ day)
+                                                <span id="recovery_rate"></span>
+                                            </li>
+                                            <li>&nbsp;Recovery (supplies)
+                                                <span id="recovery_cost"></span>
+                                            </li>
+                                            <li>&nbsp;Deployment points
+                                                <span class="stat-dp" id="deployment_points"></span>
+                                            </li>
+                                            <li>Peak performance (sec)
+                                                <span class="stat-white" id="peak_performance_time"></span>
+                                            </li>
+                                            <li>Crew complement
+                                                <span class="stat-crew" id="crew_complement"></span>
+                                            </li>
+
+                                            <li> &nbsp; </li>
+                                            <li>Hull size
+                                                <span class="stat-yellow" id="hull_size"></span>
+                                            </li>
+                                            <li>Ordnance points
+                                                <span class="stat-yellow" id="ordnance_points"></span>
+                                            </li>
+                                        </ul>
+                                        <ul>
+                                            <li>Maintenance (sup/mo)
+                                                <span id="supplies_month"></span>
+                                            </li>
+                                            <li>Cargo capacity
+                                                <span class="stat-cargo" id="cargo_cap"></span>
+                                            </li>
+                                            <li>Maximum crew
+                                                <span class="stat-crew" id="crew_cap"></span>
+                                            </li>
+                                            <li>Skeleton crew required
+                                                <span class="stat-crew" id="crew_min"></span>
+                                            </li>
+                                            <li>Fuel capacity
+                                                <span class="stat-fuel" id="fuel_cap"></span>
+                                            </li>
+                                            <li>Maximum burn
+                                                <span class="stat-yellow" id="burn_max"></span>
+                                            </li>
+                                            <li>Fuel / ly, jump cost
+                                                <span class="stat-yellow" id="fuel_cost"></span>
+                                            </li>
+                                            <li>Sensor profile
+                                                <span class="stat-yellow" id="sensor_profile"></span>
+                                            </li>
+                                            <li>Sensor strenght
+                                                <span class="stat-yellow" id="sensor_strenght"></span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+
+                                <div style="width: 33%;">
+                                    <div class="combat-header">
+                                        Combat performance
+                                    </div>
+                                    <div class="combat-content">
+                                        <ul>
+                                            <li>Hull integrity
+                                                <span id="hull_integrity"></span>
+                                            </li>
+                                            <li>Armor rating
+                                                <span id="armor_rating"></span>
+                                            </li>
+                                            <li>Defense
+                                                <span id="defense_type"></span>
+                                            </li>
+                                            <li>
+                                                <span id="defense_property_1_name" no-color>Shield arc</span>
+                                                <span id="defense_property_1_val"></span>
+                                            </li>
+                                            <li><span id="defense_property_2_name" no-color>Shield upkeep/sec</span>
+                                                <span id="defense_property_2_val"></span>
+                                            </li>
+                                            <li> <span id="defense_property_3_name" no-color>Shield flux/damage</span>
+                                                <span id="defense_property_3_val"></span>
+                                            </li>
+                                            <li>Flux capacity
+                                                <span id="flux_cap"></span>
+                                            </li>
+                                            <li>Flux dissipation
+                                                <span id="flux_diss"></span>
+                                            </li>
+                                            <li>Top speed
+                                                <span id="speed_max"></span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
                             <br>
-                            Laurches flares to confuse the guidance systems of nearby enemy missiles.
-                        </td>
-                    </tr>
 
-                    <tr>
-                        <td class="ship-ordnance-title">Mounts:</td>
-                        <td>
-                            <!-- span is pretty usefull for inline coloring -->
-                            <span class="stat-yellow">4x</span> Small Ballistic
-                        </td>
-                    </tr>
+                            <div class="ship-ordnance">
+                                <table>
+                                    <tr>
+                                        <td class="ship-ordnance-title">System:</td>
+                                        <td>
+                                            <span class="stat-yellow" id="system_title"></span>
+                                            <br>
+                                            <div id="system_description">
 
-                    <tr>
-                        <td class="ship-ordnance-title">Armaments:</td>
-                        <td>
-                            None
-                        </td>
-                    </tr>
+                                            </div>
+                                        </td>
+                                    </tr>
 
-                    <tr>
-                        <td class="ship-ordnance-title">Hullmods:</td>
-                        <td>
-                            Civilian-grade Hull
-                        </td>
-                    </tr>
-                </table>
+                                    <tr>
+                                        <td class="ship-ordnance-title">Mounts:</td>
+                                        <td>
+                                            <ul id="mounts_list">
+
+                                            </ul>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="ship-ordnance-title">Armaments:</td>
+                                        <td>
+                                            <ul id="armaments_list">
+
+                                            </ul>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="ship-ordnance-title">Hullmods:</td>
+                                        <td>
+                                            <ul id="hullmods_list">
+
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+
+                        <div class="ship-image center center-grid">
+                            <img id="ship_image" src="">
+                        </div>
+                    </div>
+
+                    <div class="lower-content d-flex">
+                        <div class="ship-lore">
+                            <div id="design_type" class="ship-class mb-4" data-class-name="None"
+                                style="--data-class-color: #FFFFFF">
+                                Design Type: </div>
+
+                            <p id="ship_description">
+
+                            </p>
+
+                            <p id="ship_price" class="ship-price" data-price="">
+                                Base value:
+                            </p>
+                        </div>
+
+                        <div id="related_entries" class="related-entries">
+
+                        </div>
+
+                    </div>
+                </div>
             </div>
-
         </div>
 
     </div>
+
+    <script src="Resources/libs/SimpleBar/simplebar.min.js"></script>
+    <script src="./index.js"></script>
 
 </body>
 
