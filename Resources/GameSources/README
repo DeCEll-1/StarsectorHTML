@@ -1,1 +1,12 @@
+#
+
 I do not own any of the files under this folder.
+
+/csvs/ folders contents must be these for the game source json to be created:
+colors.csv
+descriptions.csv
+hull_mods.csv
+ship_data.csv
+ship_systems.csv
+weapon_data.csv
+wing_data.csv

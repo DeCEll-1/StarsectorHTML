@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "checkJs": true,
+        "allowJs": true,
+        "noEmit": true,
+
+        "strict": false,
+        "noImplicitAny": false,
+        "strictFunctionTypes": true,
+        "strictBindCallApply": true,
+
+        "skipLibCheck": true,
+        "noImplicitOverride": true,
+    },
+    "include": [ "*.js", "**/*.js" ],
+    "exclude": [ "node_modules" ]
+}

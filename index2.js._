@@ -1,0 +1,522 @@
+//  &nbsp;<span class="stat-debuff">(debuff)</span>
+
+//  <li>
+//      <span>4x</span> Small Ballistic
+//  </li>
+const repoName = "StarsectorHTML";
+const basePath = window.location.hostname === "127.0.0.1" ? "." : `/${repoName}`;
+
+let gameSources;
+
+Promise.all([
+    fetch(`${basePath}/Resources/GameSources/merged_game_sources.json`).then(r => r.json()),
+]).then((k) => {
+    gameSources = k[0];
+    main();
+});
+
+function substringLevenshtein(haystack, needle) {
+    haystack = haystack.toLowerCase();
+    needle = needle.toLowerCase();
+
+    if (haystack.includes(needle))
+        return 0; // perfect substring match
+
+    if (needle.length > haystack.length)
+        return levenshtein(haystack, needle);
+
+    let min = Infinity;
+    for (let i = 0; i <= haystack.length - needle.length; i++) {
+        const sub = haystack.slice(i, i + needle.length);
+        const d = levenshtein(sub, needle);
+        if (d < min) min = d;
+    }
+    return min;
+}
+
+function levenshtein(a, b) {
+    const m = [];
+    for (let i = 0; i <= b.length; i++) m[i] = [i];
+    for (let j = 0; j <= a.length; j++) m[0][j] = j;
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            m[i][j] = b[i - 1] === a[j - 1]
+                ? m[i - 1][j - 1]
+                : Math.min(
+                    m[i - 1][j - 1] + 1,
+                    m[i][j - 1] + 1,
+                    m[i - 1][j] + 1
+                );
+        }
+    }
+    return m[b.length][a.length];
+}
+
+function myHandler() {
+    const element = document.getElementById("search_bar_text_box");
+    updateSearch(element.value)
+    localStorage.setItem("last_item_searched", element.value);
+}
+
+function main() {
+    const element = document.getElementById("search_bar_text_box");
+    const last_item_searched = localStorage.getItem("last_item_searched");
+    const last_searched_item = localStorage.getItem("last_searched_item");
+    element.value = (last_item_searched ?? "")
+    myHandler();
+
+    updateCodex(((last_searched_item && last_searched_item != "") ? last_searched_item : "wolf"));
+    updateSearch();
+}
+
+function updateSearch(filter) {
+    const list = document.getElementById("search_bar_ship_list_ul");
+
+
+    // <div>
+    //     <img src="Resources/GameSources/graphics/ships/nebula/nebula.png" alt="">
+    // </div>
+    // <div>
+    //     <div>
+    //         Nebula
+    //     </div>
+    //     <div>
+    //         Civilian transport
+    //     </div>
+    // </div>
+    let items = [];
+    list.innerHTML = ""
+    const maxAllowedDistance = 2;
+
+    gameSources.ships.forEach(ship_data_json => {
+        if (ship_data_json["hullSize"] == "FIGHTER")
+            return;
+
+        const ship_data_csv = gameSources.ship_data.find(s => s.id === ship_data_json["hullId"]);
+        if (!ship_data_csv) {
+            console.log("ship_data_csv is undefined for: " + ship_data_json["hullId"]);
+            return;
+        }
+
+        if (ship_data_csv.hints.includes("HIDE_IN_CODEX"))
+            return;
+
+        if (filter) {
+            const name = ship_data_csv["name"];
+            const distance = substringLevenshtein(name, filter);
+            if (distance > maxAllowedDistance)
+                return;
+        }
+
+        const li = document.createElement("li");
+        li.dataset.hullId = ship_data_json["hullId"];
+
+        const image_div = document.createElement("div");
+        li.appendChild(image_div);
+
+        const image = document.createElement("img");
+        image_div.appendChild(image);
+        image.src = "./Resources/GameSources/" + ship_data_json["spriteName"];
+        if (!ship_data_json["spriteName"])
+            console.warn("Sprite were null for " + ship_data_json["hullId"] + " " + ship_data_json["spriteName"])
+
+        const designation_container = document.createElement("div");
+        li.appendChild(designation_container);
+
+        const name_div = document.createElement("div")
+        name_div.innerText = ship_data_json["hullName"];
+        designation_container.appendChild(name_div);
+
+        const designation_div = document.createElement("div")
+        designation_div.innerText = ship_data_csv["designation"];
+        designation_container.appendChild(designation_div);
+
+        li.addEventListener("click", (e) => {
+            const hullId = e.currentTarget.dataset.hullId;
+            updateCodex(hullId);
+        });
+
+        items.push(li);
+
+    });
+
+    gameSources.skins.forEach(skin_data_json => {
+        const ship_data_json = gameSources.ships.find(s => s.hullId === skin_data_json["baseHullId"]);
+        if (ship_data_json["hullSize"] == "FIGHTER")
+            return;
+
+        const ship_data_csv = gameSources.ship_data.find(s => s.id === ship_data_json["hullId"]);
+        if (!ship_data_csv) {
+            console.log("ship_data_csv is undefined for: " + ship_data_json["hullId"]);
+            return;
+        }
+
+        if (ship_data_csv.hints.includes("HIDE_IN_CODEX"))
+            return;
+
+        if (filter) {
+            const name = ship_data_csv["name"];
+            const distance = substringLevenshtein(name, filter);
+            if (distance > maxAllowedDistance)
+                return;
+        }
+
+        const li = document.createElement("li");
+        li.dataset.hullId = skin_data_json["skinHullId"];
+
+        const image_div = document.createElement("div");
+        li.appendChild(image_div);
+
+        const image = document.createElement("img");
+        image_div.appendChild(image);
+        if (skin_data_json["spriteName"])
+            image.src = "./Resources/GameSources/" + skin_data_json["spriteName"];
+        else
+            image.src = "./Resources/GameSources/" + ship_data_json["spriteName"];
+
+        const designation_container = document.createElement("div");
+        li.appendChild(designation_container);
+
+        const name_div = document.createElement("div")
+        if (skin_data_json["hullName"])
+            name_div.innerText = skin_data_json["hullName"];
+        else
+            name_div.innerText = ship_data_json["hullName"];
+        designation_container.appendChild(name_div);
+
+        const designation_div = document.createElement("div")
+        designation_div.innerText = ship_data_csv["designation"];
+        designation_container.appendChild(designation_div);
+
+        li.addEventListener("click", (e) => {
+            const hullId = e.currentTarget.dataset.hullId;
+            updateCodex(hullId);
+        });
+
+        items.push(li);
+    });
+
+
+    items.sort((a, b) => a.children[1].children[0].innerText.localeCompare(b.children[1].children[0].innerText));
+
+    items.forEach(item => list.appendChild(item));
+}
+
+function updateCodex(selectedShip) {
+
+    localStorage.setItem("last_searched_item", selectedShip);
+
+    //#region elements
+    const ship_name_header = document.getElementById("ship_name_header");
+    const ship_image = document.getElementById("ship_image");
+    const cr_deployment = document.getElementById("cr_deployment");
+    const recovery_rate = document.getElementById("recovery_rate");
+    const recovery_cost = document.getElementById("recovery_cost");
+    const deployment_points = document.getElementById("deployment_points");
+    const peak_performance_time = document.getElementById("peak_performance_time");
+    const crew_complement = document.getElementById("crew_complement");
+    const hull_size = document.getElementById("hull_size");
+    const ordnance_points = document.getElementById("ordnance_points");
+    const supplies_month = document.getElementById("supplies_month");
+    const cargo_cap = document.getElementById("cargo_cap");
+    const crew_cap = document.getElementById("crew_cap");
+    const crew_min = document.getElementById("crew_min");
+    const fuel_cap = document.getElementById("fuel_cap");
+    const burn_max = document.getElementById("burn_max");
+    const fuel_cost = document.getElementById("fuel_cost");
+    const sensor_profile = document.getElementById("sensor_profile");
+    const sensor_strenght = document.getElementById("sensor_strenght");
+    const hull_integrity = document.getElementById("hull_integrity");
+    const armor_rating = document.getElementById("armor_rating");
+    const defense_type = document.getElementById("defense_type");
+    const defense_property_1_name = document.getElementById("defense_property_1_name");
+    const defense_property_1_val = document.getElementById("defense_property_1_val");
+    const defense_property_2_name = document.getElementById("defense_property_2_name");
+    const defense_property_2_val = document.getElementById("defense_property_2_val");
+    const defense_property_3_name = document.getElementById("defense_property_3_name");
+    const defense_property_3_val = document.getElementById("defense_property_3_val");
+    const flux_cap = document.getElementById("flux_cap");
+    const flux_diss = document.getElementById("flux_diss");
+    const speed_max = document.getElementById("speed_max");
+    const system_title = document.getElementById("system_title");
+    const system_description = document.getElementById("system_description");
+    const mounts_list = document.getElementById("mounts_list");
+    const armaments_list = document.getElementById("armaments_list");
+    const hullmods_list = document.getElementById("hullmods_list");
+    const design_type = document.getElementById("design_type");
+    const ship_description = document.getElementById("ship_description");
+    const ship_price = document.getElementById("ship_price");
+    const related_entries = document.getElementById("related_entries");// todo
+    //#endregion
+
+    //#region get data of current ship
+
+    const skin_data_json = gameSources.skins.find(s => s.skinHullId === selectedShip);
+    if (skin_data_json) {
+        selectedShip = skin_data_json.baseHullId;
+    }
+
+    const ship_data_json = gameSources.ships.find(s => s.hullId === selectedShip);
+    const description_data = gameSources.descriptions.find(s => s.id === selectedShip && s.type == "SHIP");
+    let ship_data_csv = gameSources.ship_data.find(s => s.id === selectedShip);
+    if (skin_data_json)
+        ship_data_csv = { ...ship_data_csv, ...skin_data_json };
+    let hullmods_data = []
+    if (ship_data_json.builtInMods) {
+        hullmods_data = gameSources.hull_mods.filter(mod => ship_data_json.builtInMods.includes(mod.id));
+    }
+    if (skin_data_json && skin_data_json.builtInMods)
+        hullmods_data = hullmods_data.concat(
+            gameSources.hull_mods.filter(mod => skin_data_json.builtInMods.includes(mod.id))
+        );
+    const ship_system = gameSources.ship_systems.find(s => s.id === ship_data_csv["system id"])
+    const ship_system_description = gameSources.descriptions.find(s => s.id === ship_system["id"] && s.type == "SHIP_SYSTEM");
+    let color = {
+        type: "Common",
+        hex: "#BEC8C8"
+    };
+    if (skin_data_json && gameSources.colors.find(s => s.type == skin_data_json["tech"]))
+        color = gameSources.colors.find(s => s.type == skin_data_json["tech"]);
+    else if (ship_data_csv["tech/manufacturer"])
+        color = gameSources.colors.find(s => s.type == ship_data_csv["tech/manufacturer"]);
+
+
+    console.log(skin_data_json);
+    console.log(ship_data_json);
+    console.log(description_data);
+    console.log(ship_data_csv);
+    console.log(hullmods_data);
+    console.log(ship_system);
+    console.log(ship_system_description);
+    console.log(color);
+
+    //#endregion
+
+    const capitalizeFirstLetter = str => str[0].toUpperCase() + str.slice(1).toLowerCase();
+    function getDefenseType(stringType) {
+        if (stringType == "FRONT")
+            return "Front Shield";
+        else if (stringType == "OMNI")
+            return "Shield"
+        else if (stringType == "PHASE")
+            return "Phase Cloak";
+        else if (stringType == "NONE")
+            return "None";
+    }
+
+    function updateDefensePropertys() {
+        switch (ship_data_csv["shield type"]) {
+            case "FRONT":
+            case "OMNI":
+                defense_property_1_name.innerText = "Shield arc";
+                defense_property_1_val.innerText = ship_data_csv["shield arc"];
+                defense_property_2_name.innerText = "Shield upkeep/sec";
+                defense_property_2_val.innerText = parseFloat(ship_data_csv["shield upkeep"]).toFixed(1);
+                defense_property_3_name.innerText = "Shield flux/damage";
+                defense_property_3_val.innerText = parseFloat(ship_data_csv["shield efficiency"]).toFixed(1);
+                break;
+            case "PHASE":
+                defense_property_1_name.innerText = "Cloak activation cost";
+                // flux cap * phase upkeep
+                defense_property_1_val.innerText = ship_data_csv["phase cost"] * ship_data_csv["max flux"];
+
+                defense_property_2_name.innerText = "Cloak upkeep/sec";
+                // flux cap * phase upkeep
+                defense_property_2_val.innerText = ship_data_csv["phase upkeep"] * ship_data_csv["max flux"];
+
+                defense_property_3_name.innerHTML = "<br/>";
+                defense_property_3_val.innerText = "";
+                break;
+            case "NONE":
+                defense_property_1_name.innerHTML = "<br/>";
+                defense_property_1_val.innerText = "";
+
+                defense_property_2_name.innerHTML = "<br/>";
+                defense_property_2_val.innerText = "";
+
+                defense_property_3_name.innerHTML = "<br/>";
+                defense_property_3_val.innerText = "";
+                break;
+            default:
+                break;
+        }
+
+    }
+
+    const sensor_dict = { "Frigate": 30, "Destroyer": 60, "Cruiser": 90, "Capital": 150 };
+
+    //#region update fields
+    if (skin_data_json)
+        ship_name_header.innerText = skin_data_json["hullName"] + " class "
+    else
+        ship_name_header.innerText = ship_data_csv["name"] + "-class"
+    ship_name_header.innerText += " " + ship_data_csv["designation"]
+
+
+    if (skin_data_json && skin_data_json["spriteName"])
+        ship_image.src = "./Resources/GameSources/" + skin_data_json["spriteName"];
+    else
+        ship_image.src = "./Resources/GameSources/" + ship_data_json["spriteName"];
+
+    function displayNaNIfNull(element, data, appendage) {
+        if (data)
+            element.innerText = data + (appendage ?? "")
+        else
+            element.innerText = NaN
+    }
+
+    displayNaNIfNull(cr_deployment, ship_data_csv["CR to deploy"], "%")
+    displayNaNIfNull(recovery_rate, ship_data_csv["cr %/day"], "%")
+    displayNaNIfNull(recovery_cost, ship_data_csv["supplies/rec"])
+    displayNaNIfNull(deployment_points, ship_data_csv["supplies/rec"])
+
+    displayNaNIfNull(peak_performance_time, ship_data_csv["peak CR sec"]);
+
+    crew_complement.innerText = ship_data_csv["min crew"] + " / " + ship_data_csv["min crew"];
+
+    hull_size.innerText = capitalizeFirstLetter(ship_data_json["hullSize"]).replace("_", " ").replace("ship", "");
+    ordnance_points.innerText = ship_data_csv["ordnance points"];
+
+    supplies_month.innerText = parseFloat(ship_data_csv["supplies/mo"]).toFixed(1);
+
+    displayNaNIfNull(cargo_cap, ship_data_csv["cargo"]);
+
+    crew_cap.innerText = ship_data_csv["max crew"];
+    crew_min.innerText = ship_data_csv["min crew"];
+
+    displayNaNIfNull(fuel_cap, ship_data_csv["fuel"]);
+    displayNaNIfNull(burn_max, ship_data_csv["max burn"]);
+    displayNaNIfNull(fuel_cost, ship_data_csv["fuel/ly"]);
+
+    sensor_profile.innerText = sensor_dict[hull_size.innerText];
+    sensor_strenght.innerText = sensor_dict[hull_size.innerText];
+
+    hull_integrity.innerText = ship_data_csv["hitpoints"];
+    armor_rating.innerText = ship_data_csv["armor rating"];
+
+    defense_type.innerText = getDefenseType(ship_data_csv["shield type"]);
+
+    updateDefensePropertys()
+
+    flux_cap.innerText = ship_data_csv["max flux"];
+    flux_diss.innerText = ship_data_csv["flux dissipation"];
+
+    speed_max.innerText = ship_data_csv["max speed"];
+
+    system_title.innerText = ship_system["name"];
+    if (ship_system_description)
+        system_description.innerText = ship_system_description["text1"];
+    else
+        system_description.innerText = "No description... yet"
+
+    // Apply skin changes
+    const weaponSlots = ship_data_json.weaponSlots.map(slot => {
+
+        if (slot.mount === "HIDDEN" || slot.type === "SYSTEM") {
+            return undefined;
+        }
+
+        // if skin data exist with a slot change then check if the slot id exists on the change list
+        if (skin_data_json?.weaponSlotChanges?.[slot.id]) {
+            // if so merge the slot with the priority of the change
+            return { ...slot, ...skin_data_json.weaponSlotChanges[slot.id] };
+        }
+        // if its removed just nuke it
+        if (skin_data_json?.removeWeaponSlots?.find(s => s === slot.id)) {
+            return undefined;
+        }
+        return slot;
+    });
+
+    const order = ["LARGE", "MEDIUM", "SMALL"];
+
+    weaponSlots.sort((a, b) => order.indexOf(a.size) - order.indexOf(b.size));
+
+    // Count slots by type+size
+    const slotCounts = weaponSlots.reduce((acc, slot) => {
+        if (!slot)
+            return acc;
+
+        const key = `${slot.type}|${slot.size}`;  // unique key per type+size
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+    }, {});
+
+    // Render unique slots
+    mounts_list.innerHTML = "";
+    const rendered = new Set(); // to avoid duplicates
+
+    // iterate over our updated weapon slots
+    for (const slot of weaponSlots) {
+        if (!slot)
+            continue;
+        const key = `${slot.type}|${slot.size}`;
+        if (!rendered.has(key)) {
+            const count = slotCounts[key];
+            const li = document.createElement("li");
+            li.innerHTML = `<span>${count}x</span> ${capitalizeFirstLetter(slot.size)} ${capitalizeFirstLetter(slot.type)}`;
+            mounts_list.appendChild(li);
+            rendered.add(key);
+        }
+    }
+
+
+
+
+    const weaponCounts = Object.values(ship_data_json["builtInWeapons"] ?? {}).reduce((acc, weapon) => {
+        acc[weapon] = (acc[weapon] || 0) + 1;
+        return acc;
+    }, {});
+
+
+    armaments_list.innerHTML = ""
+    for (const [type, count] of Object.entries(weaponCounts)) {
+        const li = document.createElement("li");
+        li.innerHTML = `<span>${count}x</span> ${capitalizeFirstLetter(type)}`;
+        armaments_list.appendChild(li);
+    }
+    if (armaments_list.children.length == 0) {
+        const li = document.createElement("li");
+        li.innerText = "None";
+        armaments_list.appendChild(li);
+    }
+
+    hullmods_list.innerHTML = ""
+    for (const [type, hullmod] of Object.entries(hullmods_data)) {
+        const li = document.createElement("li");
+        li.innerHTML = `${hullmod.name}`;
+        hullmods_list.appendChild(li);
+    }
+    if (hullmods_list.children.length == 0) {
+        const li = document.createElement("li");
+        li.innerText = "None";
+        hullmods_list.appendChild(li);
+    }
+
+
+    design_type.setAttribute("data-class-name", color.type);
+    design_type.style.setProperty("--data-class-color", color.hex);
+
+    const texts = [
+        description_data["text1"],
+        description_data["text2"],
+        description_data["text3"],
+        description_data["text4"],
+        description_data["text5"]
+    ].filter(Boolean); // removes null, undefined, empty strings
+
+    let htmlText = texts
+        .map(text => text.replace(/\n/g, "<br>"))
+        .join("<br>");
+
+    if (skin_data_json && skin_data_json["descriptionPrefix"] && skin_data_json["descriptionPrefix"].length > 5)
+        htmlText = skin_data_json["descriptionPrefix"] + "<br/><br/>" + htmlText;
+
+    ship_description.innerHTML = htmlText;
+
+    // Change the price
+    ship_price.setAttribute("data-price", parseFloat(ship_data_csv["base value"]).toLocaleString('en-US', { style: 'currency', currency: 'EUR' }).slice(1));
+
+    //#endregion
+
+}

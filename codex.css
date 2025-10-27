@@ -10,12 +10,21 @@
     src: url("Resources/Fonts/Victor_Mono/static/VictorMono-ExtraLight.ttf") format("truetype");
     font-weight: normal;
     font-style: normal;
+    font-weight: 100;
 }
 
-:root{
-    --scrollbar-right-margin: 4px;
-    --scrollbar-right-margin-after-resize: 2px;
-    --simplebar-placeholder-max-width: 1000px;
+:root {
+    --stat-yellow: #FFDD00;
+    --stat-fuel: #FC7C19;
+    --stat-crew: #00FFC0;
+    --stat-dp: #40D0DF;
+    --stat-white: #F0FFF0;
+    --stat-cargo: #FFFFBF;
+    --stat-debuff: #FD6300;
+    --stat-gray: #757575;
+    --brighten-dark-text: 
+    0 0 0.5px currentColor,
+    0 0 0.5px currentColor;
 }
 
 *::after,
@@ -45,7 +54,9 @@ body {
     margin: 0px;
     background-color: #000;
     color: #FFF;
+    text-shadow: var(--brighten-dark-text);
 }
+
 
 body,
 td {
@@ -94,6 +105,7 @@ td {
 .logistical-content,
 .combat-content * {
     color: #FFF;
+    text-shadow: none;
 }
 
 :is(.logistical-header, .combat-header, .ship-header, .search-header),
@@ -141,22 +153,35 @@ td ul li {
 :is(.combat-content, .logistical-content) ul span:not([no-color]) {
     float: right;
     color: #E0FFEF;
+    text-shadow: none;
+
 }
 
 .ship-ordnance table tr td {
+    text-shadow: none;
     vertical-align: top;
 }
 
+.ship-ordnance table tr td ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
 
 /* #region pseudo classes */
 .ship-class::after {
     content: attr(data-class-name);
     color: var(--data-class-color);
+    text-shadow: var(--brighten-dark-text) !important
 }
 
 .ship-price::after {
     content: attr(data-price);
     color: #FFDD00;
+    text-shadow: none !important
 }
 
 .related-entries::before {
@@ -235,6 +260,7 @@ td ul li:last-child::after {
 
 .ship-lore {
     color: white;
+    text-shadow: none;
     width: 70%;
     border: 1px solid #15414D;
     padding: 8px;
@@ -258,40 +284,58 @@ td ul li:last-child::after {
 
 /* #region colors */
 td ul li span:not([no-color]) {
-    color: #FFDD00 !important;
+    color: var(--stat-yellow) ;
 }
 
 .stat-yellow {
-    color: #FFDD00 !important;
+    color: var(--stat-yellow) !important;
 }
 
 .stat-fuel {
-    color: #FC7C19 !important;
+    color: var(--stat-fuel) !important;
+    text-shadow: var(--brighten-dark-text) !important
 }
 
 .stat-crew {
-    color: #00FFC0 !important;
+    color: var(--stat-crew) !important;
 }
 
 .stat-dp {
-    color: #40D0DF !important;
+    color: var(--stat-dp) !important;
 }
 
 .stat-white {
-    color: #F0FFF0 !important;
+    color: var(--stat-white) !important;
 }
 
 .stat-cargo {
-    color: #FFFFBF !important;
+    color: var(--stat-cargo) !important;
 }
 
 .stat-debuff {
-    color: #FD6300 !important;
+    color: var(--stat-debuff) !important;
 }
+
+.stat-gray {
+    color: var(--stat-gray) !important;
+    text-shadow: var(--brighten-dark-text) !important;
+}
+
+#hullmods_list span:first-child {
+    color: var(--stat-gray) !important;
+    text-shadow: var(--brighten-dark-text) !important
+}
+
+#hullmods_list span:nth-child(2) {
+    color: var(--stat-debuff) !important;
+    text-shadow: var(--brighten-dark-text) !important
+}
+
 
 .ship-class,
 .ship-price {
     color: #767676;
+    text-shadow: var(--brighten-dark-text) !important
 }
 
 input[type=text] {
@@ -350,7 +394,7 @@ input[type=text]:focus::placeholder {
 .scroll-bar .simplebar-track:is(.simplebar-hover),
 .scroll-bar:is(.simplebar-dragging) .simplebar-track {
     width: 16px !important;
-    margin-right: var(--scrollbar-right-margin-after-resize)  !important;
+    margin-right: var(--scrollbar-right-margin-after-resize) !important;
 }
 
 .scroll-bar .simplebar-track:is(.simplebar-hover) .simplebar-scrollbar::before,
@@ -359,7 +403,7 @@ input[type=text]:focus::placeholder {
     width: 12px !important;
 }
 
-.simplebar-placeholder{
+.simplebar-placeholder {
     height: 686px !important;
 }
 
@@ -367,7 +411,7 @@ input[type=text]:focus::placeholder {
 
 /* #region search list */
 
-.search-bar-text-box{
+.search-bar-text-box {
     width: 98%;
 
 }
@@ -377,7 +421,7 @@ input[type=text]:focus::placeholder {
     align-self: flex-start;
 }
 
-.search-bar-ship-list{
+.search-bar-ship-list {
     overflow-y: auto;
     flex-direction: column;
     height: fit-content;
