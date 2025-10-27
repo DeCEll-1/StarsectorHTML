@@ -2,4 +2,4 @@
 !/Resources/GameSources/csvs/merger.ps1
 !/Resources/GameSources/csvs/colors.csv
 
-/Resources/GameSources/Ships
+/Resources/GameSources/Ships/*
