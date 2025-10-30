@@ -19,7 +19,7 @@ const EL = (() => {
         "cr_deployment", "recovery_rate", "recovery_cost", "deployment_points",
         "peak_performance_time", "crew_complement", "hull_size", "ordnance_points",
         "supplies_month", "cargo_cap", "crew_cap", "crew_min", "fuel_cap",
-        "burn_max", "fuel_cost", "sensor_profile", "sensor_strenght",
+        "burn_max", "fuel_cost", "sensor_profile", "sensor_strength",
         // defense
         "hull_integrity", "armor_rating", "defense_type",
         "defense_property_1_name", "defense_property_1_val",
@@ -284,7 +284,29 @@ function updateCodex(selectedHull) {
     setDescription(description, skin);
     setPrice(csv, skin);
     //#endregion
+
+//#region return
+
+    current_ship = {
+        skin: skin,
+        baseHullId: baseHullId,
+        shipJson: shipJson,
+        csv: csv,
+        description: description,
+        weapons: weapons,
+        wings: wings,
+        hullmods: hullmods,
+        system: system,
+        systemDesc: systemDesc,
+        color: color
+    }
+
+    return current_ship;
+
+    //#endregion
 }
+
+let current_ship;
 
 window.updateCodex = updateCodex;
 
@@ -320,7 +342,7 @@ function setLogistics(csv, sensorDict) {
     setValue(EL.fuel_cost, csv["fuel/ly"]);
     const size = EL.hull_size.textContent.trim();
     setValue(EL.sensor_profile, sensorDict[size]);
-    setValue(EL.sensor_strenght, sensorDict[size]);
+    setValue(EL.sensor_strength, sensorDict[size]);
 }
 
 function setDefense(csv) {
@@ -502,7 +524,7 @@ function handleNoScrollBar() {
     document.querySelectorAll(".simplebar-track").forEach(e => e.classList.add("d-none"));
 }
 
-function handleNoBorder(){
+function handleNoBorder() {
     document.querySelectorAll(".codex-border").forEach(e => e.classList.remove("codex-border"));
 }
 //#endregion
