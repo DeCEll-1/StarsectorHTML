@@ -164,7 +164,7 @@ function updateSearch(filter = '') {
         if (!base || base.hullSize === "FIGHTER") continue;
         const csv = gameSources.ship_data.find(s => s.id === skin.baseHullId);
         if (!csv || csv.hints.includes("HIDE_IN_CODEX")) continue;
-        if (filter && substringLevenshtein(csv.name, filter) > MAX_DISTANCE) continue;
+        if (filter && substringLevenshtein(skin.hullName, filter) > MAX_DISTANCE) continue;
 
         candidates.push({ type: 'skin', skin, base, csv });
     }
@@ -177,18 +177,6 @@ function updateSearch(filter = '') {
         return nameA.localeCompare(nameB);
     });
     //#endregion
-
-    // get ids
-    // console.log(
-    //     candidates.map(
-    //         s => firstNonEmpty(s.skin?.skinHullId, s.csv.id)
-    //         )
-    //         .reduce(
-    //             (acc, val) => {
-    //                 acc += (`${val}, `);
-    //                 return acc;
-    //             }, "")
-    // )
 
     //#region render
     for (const c of candidates) {

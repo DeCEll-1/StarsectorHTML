@@ -206,9 +206,11 @@ const IMAGE_HEIGHT = 736;
     await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
     let i = 0;
     for (const id of IDS) {
+        const imgExists = (await fs.existsSync(path.join(OUTPUT_DIR, `${id}.png`)));
+        const htmlExists = (await fs.existsSync(path.join(OUTPUT_DIR, `${id}.html`)));
         if (
-            (await fs.existsSync(path.join(OUTPUT_DIR, `${id}.png`))) &&
-            (await fs.existsSync(path.join(OUTPUT_DIR, `${id}.html`)))
+            imgExists &&
+            htmlExists
         ) {
             console.log(`→ [${i}/${IDS.length}] - ${id} already exists… Skipping…`);
             await new Promise(r => setTimeout(r, 5));
@@ -223,41 +225,48 @@ const IMAGE_HEIGHT = 736;
                 return window.updateCodex(id)
             }, id);
 
-        // wait for site to update
-        await new Promise(r => setTimeout(r, 500));
-
         //#region image
-        console.log(`\t\t\ttaking screenshot…`);
-        const screenshot = await page.screenshot({
-            clip: {
-                x: 0,
-                y: 0,
-                width: IMAGE_WIDTH,
-                height: IMAGE_HEIGHT,
-            },
-        });
+
+        if (!imgExists) {
+            // wait for site to update
+            await new Promise(r => setTimeout(r, 500));
+
+            console.log(`\t\t\ttaking screenshot…`);
+            const screenshot = await page.screenshot({
+                clip: {
+                    x: 0,
+                    y: 0,
+                    width: IMAGE_WIDTH,
+                    height: IMAGE_HEIGHT,
+                },
+            });
 
 
-        console.log(`\t\t\twriting screenshot to file…`);
-        const outPathImg = path.join(OUTPUT_DIR, `${id}.png`);
-        fs.writeFileSync(outPathImg, screenshot);
+            console.log(`\t\t\twriting screenshot to file…`);
+            const outPathImg = path.join(OUTPUT_DIR, `${id}.png`);
+            fs.writeFileSync(outPathImg, screenshot);
+        }
 
         //#endregion
 
         //#region html
 
-        console.log(`\t\t\twriting html to file …`);
-        const outPathHtml = path.join(OUTPUT_DIR, `${id}.html`);
-        fs.writeFileSync(outPathHtml,
-            template
-                .replaceAll("{SHIP_NAME}",
-                    `${firstNonEmpty(entry.skin?.hullName, entry.csv.name)}-class ${firstNonEmpty(entry.skin?.hullDesignation, entry.csv?.designation)}`
-                ).replaceAll("{SHIP_ID}",
-                    id
-                ).replaceAll("{SHIP_COLOR}",
-                    entry.color.hex
-                )
-        );
+        if (!htmlExists) {
+            console.log(`\t\t\twriting html to file …`);
+            const outPathHtml = path.join(OUTPUT_DIR, `${id}.html`);
+            fs.writeFileSync(outPathHtml,
+                template
+                    .replaceAll("{SHIP_NAME}",
+                        `${firstNonEmpty(entry.skin?.hullName, entry.csv.name)}-class ${firstNonEmpty(entry.skin?.hullDesignation, entry.csv?.designation)}`
+                    ).replaceAll("{SHIP_ID}",
+                        id
+                    ).replaceAll("{SHIP_COLOR}",
+                        entry.color.hex
+                    ).replaceAll("{SEARCH_TEXT}",
+                        firstNonEmpty(entry.skin?.hullName, entry.csv.name)
+                    )
+            );
+        }
 
         //#endregion
 
