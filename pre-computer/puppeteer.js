@@ -204,6 +204,7 @@ const IMAGE_HEIGHT = 736;
     const url = `${BASE_URL}?no_scroll_bar&no_search&no_share_icon`;
 
     await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
+    await new Promise(r => setTimeout(r, 1000));
     let i = 0;
     for (const id of IDS) {
         const imgExists = (await fs.existsSync(path.join(OUTPUT_DIR, `${id}.png`)));
@@ -212,12 +213,12 @@ const IMAGE_HEIGHT = 736;
             imgExists &&
             htmlExists
         ) {
-            console.log(`→ [${i}/${IDS.length}] - ${id} already exists… Skipping…`);
+            console.log(`→ [${i}/${IDS.length - 1}] - ${id} already exists… Skipping…`);
             await new Promise(r => setTimeout(r, 5));
             i++;
             continue;
         }
-        console.log(`→ [${i}/${IDS.length}] - ${id}…`);
+        console.log(`→ [${i}/${IDS.length - 1}] - ${id}…`);
 
         console.log(`\t\t\tcalling updateCodex…`);
         let entry =
@@ -229,18 +230,23 @@ const IMAGE_HEIGHT = 736;
 
         if (!imgExists) {
             // wait for site to update
-            await new Promise(r => setTimeout(r, 500));
+            // await new Promise(r => setTimeout(r, 700));
+
+            const imgSelector = "#ship_image";
+
+            await page.evaluate((selector) => {
+                return new Promise((resolve) => {
+                    const img = document.querySelector(selector);
+                    if (img.complete) {
+                        resolve(); // already loaded
+                    } else {
+                        img.onload = () => resolve();
+                    }
+                });
+            }, imgSelector);
 
             console.log(`\t\t\ttaking screenshot…`);
-            const screenshot = await page.screenshot({
-                clip: {
-                    x: 0,
-                    y: 0,
-                    width: IMAGE_WIDTH,
-                    height: IMAGE_HEIGHT,
-                },
-            });
-
+            const screenshot = await page.screenshot();
 
             console.log(`\t\t\twriting screenshot to file…`);
             const outPathImg = path.join(OUTPUT_DIR, `${id}.png`);

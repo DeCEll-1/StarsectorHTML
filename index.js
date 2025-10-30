@@ -45,6 +45,7 @@ const EL = (() => {
 //#endregion
 
 //#region helper functions
+
 function capitalize(s) { return (s[0].toUpperCase() + s.slice(1).toLowerCase()).replace("_", " "); }
 function setValue(el, val, suffix = '') { return el.textContent = (val == null) ? '—' : val + suffix; }
 function make(html, tag = 'div') { const el = document.createElement(tag); el.innerHTML = html; return el; };
@@ -369,7 +370,7 @@ function setDefense(csv) {
         EL.defense_property_1_name.textContent = "Shield arc";
         EL.defense_property_1_val.textContent = csv["shield arc"];
         EL.defense_property_2_name.textContent = "Shield upkeep/sec";
-        EL.defense_property_2_val.textContent = parseFloat(csv["shield upkeep"]).toFixed(1);
+        EL.defense_property_2_val.textContent = (parseFloat(csv["shield upkeep"]) * parseFloat(csv["flux dissipation"])).toFixed(1);
         EL.defense_property_3_name.textContent = "Shield flux/damage";
         EL.defense_property_3_val.textContent = parseFloat(csv["shield efficiency"]).toFixed(1);
     } else if (shieldType === "PHASE") {
