@@ -212,17 +212,26 @@ function updateCodex(selectedHull) {
     localStorage.setItem("last_searched_item", selectedHull);
 
     //#region data collection
+    /** @type {Skin} */
     const skin = gameSources.skins.find(s => s.skinHullId === selectedHull);
     const baseHullId = skin ? skin.baseHullId : selectedHull;
 
+    /** @type {ShipJSON} */
     const shipJson = gameSources.ships.find(s => s.hullId === baseHullId);
+
+    /** @type {Description} */
     const description = gameSources.descriptions.find(d => d.id === firstNonEmpty(skin?.descriptionId, baseHullId) && d.type === "SHIP");
+    /** @type {CSV} */
     let csv = gameSources.ship_data.find(s => s.id === baseHullId);
 
     const builtInMods = Object.values(shipJson.builtInMods ?? {}).concat(skin?.builtInMods ?? []).filter(s => !(skin?.removeBuiltInMods ?? []).includes(s))
+    /** @type {Hullmod[]} */
     const hullmods = gameSources.hull_mods.filter(m => builtInMods.includes(m.id));
 
-    const builtInWeapons = Object.values(shipJson.builtInWeapons ?? {}).filter(s => !(skin?.removeBuiltInWeapons ?? []).includes(s))
+    // @ts-ignore
+    const builtInWeapons = Object.values({ ...(shipJson.builtInWeapons ?? {}), ...(skin?.builtInWeapons ?? {}) }).filter(s => !(skin?.removeBuiltInWeapons ?? []).includes(s))
+    
+    /** @type {Weapon[]} */
     const weapons = gameSources.weapon_data.filter(m => builtInWeapons.includes(m.id));
 
     const builtInWings = Object.values(shipJson.builtInWings ?? {}).filter(s => !(skin?.removeBuiltInWings ?? []).includes(s))
@@ -236,6 +245,7 @@ function updateCodex(selectedHull) {
     });
 
     const wing_ship_ids = wing_data_wings.map(w => w.variant_no_classification);
+    /** @type {Wing[]} */
     const wings =
         mergeByProperty(
             gameSources.ship_data.filter(m => wing_ship_ids.includes(m.id)),
@@ -244,9 +254,19 @@ function updateCodex(selectedHull) {
             "variant_no_classification"
         );
 
+    /** @type {System} */
     const system = gameSources.ship_systems.find(s => s.id === firstNonEmpty(skin?.systemId, csv["system id"]));
+
+    /** @type {System} */
+    let right_click_system;
+    const hasDefenseID = (csv["defense id"] != "") ? true : false;
+    if (hasDefenseID)
+        right_click_system = gameSources.ship_systems.find(s => s.id === csv["defense id"])
+
+    /** @type {Description} */
     const systemDesc = gameSources.descriptions.find(d => d.id === system?.id && d.type === "SHIP_SYSTEM");
 
+    /** @type {Color} */
     const color = skin && gameSources.colors.find(c => c.type === firstNonEmpty(skin.tech, skin.manufacturer))
         || gameSources.colors.find(c => c.type === csv["tech/manufacturer"])
         || { type: "Common", hex: "#BEC8C8" };
@@ -265,6 +285,8 @@ function updateCodex(selectedHull) {
     console.log("Wings:", wings)
     console.log("Hullmods:", hullmods);
     console.log("Ship system:", system);
+    if (hasDefenseID)
+        console.log("Ship right click system:", right_click_system);
     console.log("System description:", systemDesc);
     console.log("Design color:", color);
     console.log(" ")
@@ -275,11 +297,11 @@ function updateCodex(selectedHull) {
     setImage(shipJson, skin);
     setCombatStats(csv, shipJson, skin);
     setLogistics(csv, sensorDict);
-    setDefense(csv);
+    setDefense(csv, right_click_system);
     setFluxAndSpeed(csv);
     setSystem(system, systemDesc);
     renderMounts(shipJson, skin, csv);
-    renderBuiltInArmaments(shipJson, weapons, wings);
+    renderBuiltInArmaments(shipJson, skin, weapons, wings);
     renderHullmods(hullmods);
     setDesignType(color);
     setDescription(description, skin);
@@ -288,11 +310,13 @@ function updateCodex(selectedHull) {
 
     //#region return
 
+    /** @type {ship_data} */
     current_ship = {
         selectedHull: selectedHull,
         image: `${BASE_PATH}/Resources/GameSources/` + (firstNonEmpty(skin?.spriteName, shipJson?.spriteName)),
-        skin: skin,
         baseHullId: baseHullId,
+
+        skin: skin,
         shipJson: shipJson,
         csv: csv,
         description: description,
@@ -300,9 +324,11 @@ function updateCodex(selectedHull) {
         wings: wings,
         hullmods: hullmods,
         system: system,
+        right_click_system: right_click_system,
         systemDesc: systemDesc,
         color: color
     }
+
 
     return current_ship;
 
@@ -348,17 +374,19 @@ function setLogistics(csv, sensorDict) {
     setValue(EL.sensor_strength, sensorDict[size]);
 }
 
-function setDefense(csv) {
+function setDefense(csv, right_click_system) {
     setValue(EL.hull_integrity, csv["hitpoints"]);
     setValue(EL.armor_rating, csv["armor rating"]);
 
+
+    const hasDefenseID = (right_click_system) ? true : false
     const shieldType = csv["shield type"];
-    EL.defense_type.textContent = {
+    EL.defense_type.textContent = capitalize(right_click_system?.name ?? {
         FRONT: "Front Shield",
         OMNI: "Shield",
         PHASE: "Phase Cloak",
         NONE: "None"
-    }[shieldType] ?? "—";
+    }[shieldType] ?? "—");
 
     // reset properties
     [1, 2, 3].forEach(i => {
@@ -366,19 +394,28 @@ function setDefense(csv) {
         EL[`defense_property_${i}_val`].textContent = "";
     });
 
-    if (shieldType === "FRONT" || shieldType === "OMNI") {
+    if ((shieldType === "FRONT" || shieldType === "OMNI") && !hasDefenseID) {
         EL.defense_property_1_name.textContent = "Shield arc";
         EL.defense_property_1_val.textContent = csv["shield arc"];
         EL.defense_property_2_name.textContent = "Shield upkeep/sec";
         EL.defense_property_2_val.textContent = (parseFloat(csv["shield upkeep"]) * parseFloat(csv["flux dissipation"])).toFixed(1);
         EL.defense_property_3_name.textContent = "Shield flux/damage";
         EL.defense_property_3_val.textContent = parseFloat(csv["shield efficiency"]).toFixed(1);
-    } else if (shieldType === "PHASE") {
+    } else if (shieldType === "PHASE" && !hasDefenseID) {
         const flux = csv["max flux"];
         EL.defense_property_1_name.textContent = "Cloak activation cost";
         EL.defense_property_1_val.textContent = String(csv["phase cost"] * flux);
         EL.defense_property_2_name.textContent = "Cloak upkeep/sec";
         EL.defense_property_2_val.textContent = String(csv["phase upkeep"] * flux);
+    } else {
+        const leftChar = "&nbsp;"
+        const rightChar = ""
+        EL.defense_property_1_name.innerHTML = leftChar;
+        EL.defense_property_1_val.innerHTML = rightChar;
+        EL.defense_property_2_name.innerHTML = leftChar;
+        EL.defense_property_2_val.innerHTML = rightChar;
+        EL.defense_property_3_name.innerHTML = leftChar;
+        EL.defense_property_3_val.innerHTML = rightChar;
     }
 }
 
@@ -397,9 +434,10 @@ function renderMounts(shipJson, skin, csv) {
 
     const slots = (shipJson.weaponSlots ?? [])
         .map(slot => {
+            slot = skin?.weaponSlotChanges?.[slot.id] ? { ...slot, ...skin.weaponSlotChanges[slot.id] } : slot;
             if (slot.mount === "HIDDEN" || slot.type === "SYSTEM" || slot.type === "DECORATIVE") return null;
             if (skin?.removeWeaponSlots?.includes(slot.id)) return null;
-            return skin?.weaponSlotChanges?.[slot.id] ? { ...slot, ...skin.weaponSlotChanges[slot.id] } : slot;
+            return slot;
         })
         .filter(Boolean);
 
@@ -429,7 +467,7 @@ function renderMounts(shipJson, skin, csv) {
     if (!EL.mounts_list.children.length) EL.mounts_list.appendChild(make("None", 'li'));
 }
 
-function renderBuiltInArmaments(shipJson, weapons, wings) {
+function renderBuiltInArmaments(shipJson, skin, weapons, wings) {
     let counts = {
         ...Object.values(shipJson.builtInWeapons ?? {}).reduce((acc, id) => {
             acc[id] =
@@ -448,7 +486,16 @@ function renderBuiltInArmaments(shipJson, weapons, wings) {
                 type: "WING"
             };
             return acc;
-        }, {})
+        }, {}),
+        ...Object.values(skin?.builtInWeapons ?? {}).reduce((acc, id) => {
+            acc[id] =
+            {
+                id: id,
+                count: (acc[id]?.count ?? 0) + 1,
+                type: "WEAPON"
+            };
+            return acc;
+        }, {}),
     }
 
 
