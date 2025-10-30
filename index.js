@@ -486,7 +486,6 @@ function setPrice(csv, skin) {
 
 //#region url paramaters
 
-
 function handleNoSearchBar() {
     document.getElementById("search-bar").classList.add("d-none");
     document.getElementById("item-view").style.width = "100%";
