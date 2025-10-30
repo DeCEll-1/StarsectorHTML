@@ -21,6 +21,7 @@
     --stat-white: #F0FFF0;
     --stat-cargo: #FFFFBF;
     --stat-debuff: #FD6300;
+    --stat-black: #000000;
     --stat-gray: #757575;
     --brighten-dark-text:
         0 0 0.5px currentColor,
@@ -260,7 +261,7 @@ td ul li:last-child::after {
 .ship-image .share {
     position: absolute;
     top: -10px;
-    right: 5px;
+    right: 15px;
     font-size: 20px;
     /* transform: translate(50%, -50%); */
 }
@@ -517,6 +518,8 @@ input[type=text]:focus::placeholder {
     right: -274px;
     max-width: 256px;
     transition: all 0.5s;
+    background-color: var(--stat-black);
+    z-index: 1024;
 }
 
 .toaster-image {

@@ -1,13 +1,3 @@
-/**
- * generate-boxes.js
- * -------------------------------------------------
- * 1. Opens your GitHub-Pages URL (or local file://)
- * 2. Calls your existing updateCodex(id)
- * 3. Waits for the box to be fully rendered
- * 4. Clips *only* the #main-box element
- * 5. Saves a PNG (1200×630 recommended for OG)
- */
-
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
@@ -190,8 +180,8 @@ function firstNonEmpty(...vals) { return vals.find(v => v != null && v !== "") ?
 
 
 // @ts-ignore
-const BOX_SELECTOR = '#codex';          // <-- your box element
-const IMAGE_WIDTH = 836;                  // OG recommended
+const BOX_SELECTOR = '#codex';
+const IMAGE_WIDTH = 836;
 const IMAGE_HEIGHT = 736;
 
 (async () => {
