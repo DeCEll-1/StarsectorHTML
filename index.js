@@ -1,11 +1,16 @@
 //#region global vars
+// @ts-ignore
 const REPO_NAME = "StarsectorHTML";
+// @ts-ignore
 const BASE_PATH = location.hostname === "127.0.0.1" ? "." : `/${REPO_NAME}`;
 
+// @ts-ignore
 let gameSources;
+
 //#endregion
 
 //#region elements
+// @ts-ignore
 const EL = (() => {
     const ids = [
         // header
@@ -82,23 +87,52 @@ Promise.all([
 //#endregion
 
 //#region main
+
+// @ts-ignore
+const searchParams = new URLSearchParams(window.location.search);
+
 function main() {
     const lastSearch = localStorage.getItem("last_item_searched") ?? "";
     const lastCodex = localStorage.getItem("last_searched_item") ?? "wolf";
 
+    // @ts-ignore
     EL.search_bar_text_box.value = lastSearch;
     EL.search_bar_text_box.addEventListener('input', () => {
+        // @ts-ignore
         updateSearch(EL.search_bar_text_box.value);
+        // @ts-ignore
         localStorage.setItem("last_item_searched", EL.search_bar_text_box.value);
     });
 
-    updateSearch(lastSearch);
-    updateCodex(lastCodex);
+    if (searchParams.has("search")) {
+        // @ts-ignore
+        EL.search_bar_text_box.value = searchParams.get("search")
+        updateSearch(searchParams.get("search"));
+    }
+    else
+        updateSearch(lastSearch);
+
+    if (searchParams.has("id"))
+        updateCodex(searchParams.get("id"));
+    else
+        updateCodex(lastCodex);
+
+    console.log(searchParams)
+
+    if (searchParams.has("no_search"))
+        handleNoSearchBar()
+    if (searchParams.has("no_item_view"))
+        handleNoItemView()
+    if (searchParams.has("no_scroll_bar"))
+        handleNoScrollBar()
+    if (searchParams.has("no_border"))
+        handleNoBorder()
 }
 //#endregion
 
 //#region search list
 
+// @ts-ignore
 const MAX_DISTANCE = 2;
 function updateSearch(filter = '') {
     const ul = EL.search_bar_ship_list_ul;
@@ -137,6 +171,18 @@ function updateSearch(filter = '') {
         return nameA.localeCompare(nameB);
     });
     //#endregion
+
+    // get ids
+    // console.log(
+    //     candidates.map(
+    //         s => firstNonEmpty(s.skin?.skinHullId, s.csv.id)
+    //         )
+    //         .reduce(
+    //             (acc, val) => {
+    //                 acc += (`${val}, `);
+    //                 return acc;
+    //             }, "")
+    // )
 
     //#region render
     for (const c of candidates) {
@@ -239,6 +285,8 @@ function updateCodex(selectedHull) {
     setPrice(csv, skin);
     //#endregion
 }
+
+window.updateCodex = updateCodex;
 
 function setHeader(ship, csv, skin) {
     const name = firstNonEmpty(skin?.hullName, csv.name);
@@ -428,11 +476,34 @@ function setDescription(desc, skin) {
 }
 
 function setPrice(csv, skin) {
-
     const price = firstNonEmpty(
         skin?.baseValue,
         (parseFloat(csv["base value"]) * (skin?.baseValueMult ?? 1.0)).toLocaleString('en-US', { style: 'currency', currency: 'EUR' }).slice(1));
     EL.ship_price.dataset.price = price;
 }
 
+//#endregion
+
+//#region url paramaters
+
+
+function handleNoSearchBar() {
+    document.getElementById("search-bar").classList.add("d-none");
+    document.getElementById("item-view").style.width = "100%";
+    document.getElementById("codex").style.width = "820px";
+}
+
+function handleNoItemView() {
+    document.getElementById("item-view").classList.add("d-none");
+    document.getElementById("search-bar").style.width = "100%";
+    document.getElementById("codex").style.width = "205px";
+}
+
+function handleNoScrollBar() {
+    document.querySelectorAll(".simplebar-track").forEach(e => e.classList.add("d-none"));
+}
+
+function handleNoBorder(){
+    document.querySelectorAll(".codex-border").forEach(e => e.classList.remove("codex-border"));
+}
 //#endregion

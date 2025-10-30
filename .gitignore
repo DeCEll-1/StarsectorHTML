@@ -3,3 +3,4 @@
 !/Resources/GameSources/csvs/colors.csv
 
 /Resources/GameSources/Ships/*
+/pre-computer/node_modules

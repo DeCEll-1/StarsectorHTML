@@ -6,7 +6,7 @@
 }
 
 @font-face {
-    font-family: "VictorMono";
+    font-family: VictorMono;
     src: url("Resources/Fonts/Victor_Mono/static/VictorMono-ExtraLight.ttf") format("truetype");
     font-weight: normal;
     font-style: normal;
@@ -22,9 +22,9 @@
     --stat-cargo: #FFFFBF;
     --stat-debuff: #FD6300;
     --stat-gray: #757575;
-    --brighten-dark-text: 
-    0 0 0.5px currentColor,
-    0 0 0.5px currentColor;
+    --brighten-dark-text:
+        0 0 0.5px currentColor,
+        0 0 0.5px currentColor;
 }
 
 *::after,
@@ -42,7 +42,7 @@
 /* worth the try */
 
 .font-victor-mono {
-    font-family: "VictorMono";
+    font-family: VictorMono;
 }
 
 .font-orbitron {
@@ -54,7 +54,7 @@ body {
     margin: 0px;
     background-color: #000;
     color: #FFF;
-    text-shadow: var(--brighten-dark-text);
+    /* text-shadow: var(--brighten-dark-text); */
 }
 
 
@@ -69,12 +69,15 @@ td {
     height: 100%;
 }
 
-.codex {
+.codex-border{
     border: 0px solid transparent;
     border-width: 8px;
     border-image-source: url("Resources/Images/Border2.png");
     border-image-slice: 32 fill;
     border-image-repeat: repeat;
+}
+
+.codex {
     background-color: #000;
     /* 0.8x of original (i think) res */
     width: 1024px;
@@ -88,6 +91,10 @@ td {
 
 .d-flex {
     display: flex;
+}
+
+.d-none {
+    display: none;
 }
 
 .center {
@@ -210,7 +217,7 @@ td ul li:last-child::after {
 }
 
 .search-bar {
-    width: 20% !important;
+    width: 20%;
     height: 100%;
     flex-direction: column;
 }
@@ -220,11 +227,11 @@ td ul li:last-child::after {
 }
 
 .item-view {
-    width: 80% !important;
+    width: 80%;
 }
 
 .scroll-bar-container {
-    height: 95%;
+    height: 97%;
     width: 100%;
 }
 
@@ -284,7 +291,7 @@ td ul li:last-child::after {
 
 /* #region colors */
 td ul li span:not([no-color]) {
-    color: var(--stat-yellow) ;
+    color: var(--stat-yellow);
 }
 
 .stat-yellow {
