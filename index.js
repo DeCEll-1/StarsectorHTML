@@ -13,6 +13,8 @@ let gameSources;
 // @ts-ignore
 const EL = (() => {
     const ids = [
+        // containers
+        "codex", "item_view",
         // header
         "ship_name_header", "ship_image",
         // combat
@@ -33,8 +35,10 @@ const EL = (() => {
         "mounts_list", "armaments_list", "hullmods_list",
         // misc
         "design_type", "ship_description", "ship_price", "related_entries",
+        //
+        "toaster", "toaster_image", "toaster_title", "toaster_text",
         // search
-        "search_bar_text_box", "search_bar_ship_list_ul"
+        "search_bar_text_box", "search_bar_ship_list_ul", "search_bar"
     ];
     return Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
 })();
@@ -127,6 +131,8 @@ function main() {
         handleNoScrollBar()
     if (searchParams.has("no_border"))
         handleNoBorder()
+    if (searchParams.has("no_share_icon"))
+        handleNoShareIcon()
 }
 //#endregion
 
@@ -233,14 +239,20 @@ function updateCodex(selectedHull) {
     const builtInWings = Object.values(shipJson.builtInWings ?? {}).filter(s => !(skin?.removeBuiltInWings ?? []).includes(s))
 
 
-    const wing_data_wings = gameSources.wing_data.filter(m => builtInWings.includes(m.id))
-    const wing_ship_ids = wing_data_wings.map(w => w.variant);
+    const wing_data_wings = gameSources.wing_data.filter(m => builtInWings.includes(m.id));
+    wing_data_wings.forEach(w => {
+        w.variant_no_classification = w?.variant.replace(/[A-Z].*$/, '');
+        if (w.variant_no_classification.slice(-1) == "_")
+            w.variant_no_classification = w.variant_no_classification.slice(0, -1)
+    });
+
+    const wing_ship_ids = wing_data_wings.map(w => w.variant_no_classification);
     const wings =
         mergeByProperty(
             gameSources.ship_data.filter(m => wing_ship_ids.includes(m.id)),
             wing_data_wings,
             "id",
-            "variant"
+            "variant_no_classification"
         );
 
     const system = gameSources.ship_systems.find(s => s.id === firstNonEmpty(skin?.systemId, csv["system id"]));
@@ -285,9 +297,11 @@ function updateCodex(selectedHull) {
     setPrice(csv, skin);
     //#endregion
 
-//#region return
+    //#region return
 
     current_ship = {
+        selectedHull: selectedHull,
+        image: `${BASE_PATH}/Resources/GameSources/` + (firstNonEmpty(skin?.spriteName, shipJson?.spriteName)),
         skin: skin,
         baseHullId: baseHullId,
         shipJson: shipJson,
@@ -392,7 +406,7 @@ function setSystem(system, desc) {
 
 function renderMounts(shipJson, skin, csv) {
 
-    const slots = shipJson.weaponSlots
+    const slots = (shipJson.weaponSlots ?? [])
         .map(slot => {
             if (slot.mount === "HIDDEN" || slot.type === "SYSTEM" || slot.type === "DECORATIVE") return null;
             if (skin?.removeWeaponSlots?.includes(slot.id)) return null;
@@ -509,15 +523,15 @@ function setPrice(csv, skin) {
 //#region url paramaters
 
 function handleNoSearchBar() {
-    document.getElementById("search-bar").classList.add("d-none");
-    document.getElementById("item-view").style.width = "100%";
-    document.getElementById("codex").style.width = "820px";
+    EL.search_bar.classList.add("d-none");
+    EL.item_view.style.width = "100%";
+    EL.codex.style.width = "820px";
 }
 
 function handleNoItemView() {
-    document.getElementById("item-view").classList.add("d-none");
-    document.getElementById("search-bar").style.width = "100%";
-    document.getElementById("codex").style.width = "205px";
+    EL.item_view.classList.add("d-none");
+    EL.search_bar.style.width = "100%";
+    EL.codex.style.width = "205px";
 }
 
 function handleNoScrollBar() {
@@ -527,4 +541,34 @@ function handleNoScrollBar() {
 function handleNoBorder() {
     document.querySelectorAll(".codex-border").forEach(e => e.classList.remove("codex-border"));
 }
+
+function handleNoShareIcon() {
+    document.querySelector(".share").classList.add("d-none")
+}
+
+//#endregion
+
+//#region toaster
+
+function showToaster(title, text, img = "") {
+    const toaster = EL.toaster;
+    const toaster_image = EL.toaster_image;
+    const toaster_title = EL.toaster_title;
+    const toaster_text = EL.toaster_text;
+
+    toaster_title.innerText = title;
+    toaster_text.innerText = text;
+
+    // @ts-ignore
+    toaster_image.src = img;
+
+    toaster.style.right = "0px";
+
+    setTimeout(() => {
+        toaster.style.right = "-274px";
+    }, 5000);
+}
+
+window.showToaster = showToaster;
+
 //#endregion

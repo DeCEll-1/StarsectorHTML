@@ -16,26 +16,26 @@
 
         <div id="codex" class="codex codex-border d-flex">
 
-            <div id="search-bar" class="search-bar d-flex">
+            <div id="search_bar" class="search-bar d-flex">
 
                 <div id="search-bar-header" class="search-header">
                     Search results
                 </div>
 
                 <!-- the search bar -->
-                <div class="search-bar-ship-list scroll-bar scroll-bar-container" data-simplebar style="--scrollbar-right-margin: 4px; --scrollbar-right-margin-after-resize:4.3px">
+                <div class="search-bar-ship-list scroll-bar scroll-bar-container" data-simplebar
+                    style="--scrollbar-right-margin: 4px; --scrollbar-right-margin-after-resize:4.3px">
                     <ul id="search_bar_ship_list_ul">
                     </ul>
                 </div>
 
                 <div class="search-bar-search-tb">
                     <input id="search_bar_text_box" class="search-bar-text-box" type="text"
-                    placeholder="Search for ships..."
-                    >
+                        placeholder="Search for ships...">
                 </div>
             </div>
 
-            <div id="item-view" class="item-view">
+            <div id="item_view" class="item-view">
                 <div id="ship_name_header" class="ship-header mb-4"></div>
 
                 <div class="item-view-content scroll-bar scroll-bar-container" data-simplebar>
@@ -201,6 +201,15 @@
 
                         <div class="ship-image center center-grid">
                             <img id="ship_image" src="">
+                            <span class="share codex-border"
+                                onclick="
+                                navigator.clipboard.writeText(`https:\/\/decell-1.github.io/StarsectorHTML/AutoGen/Embeds/${current_ship.selectedHull}`);
+                                showToaster(
+                                    'Copied to clipboard!',
+                                    'Ship link has been copied to the clipboard.',
+                                    current_ship.image
+                                );
+                            ">v</span>
                         </div>
                     </div>
 
@@ -228,6 +237,17 @@
             </div>
         </div>
 
+    </div>
+
+    <div id="toaster" class="toaster codex-border d-flex">
+        <img id="toaster_image" class="toaster-image" src="/Resources/GameSources/graphics/ships/venture/venture.png" alt="">
+        <div>
+            <span id="toaster_title" class="toaster-title">title</span>
+            <br>
+            <div class="toaster-text">
+                <span id="toaster_text">test test test test test test test test test test test test test test test test </span>
+            </div>
+        </div>
     </div>
 
     <script src="Resources/libs/SimpleBar/simplebar.min.js"></script>
