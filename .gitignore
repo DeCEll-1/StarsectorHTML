@@ -1,9 +1,28 @@
 /Resources/GameSources/csvs/*
 
-/Resources/GameSources/Ships/*
+
+/Resources/GameSources/mods/*
+
+!/Resources/GameSources/mods/
+
+!/Resources/GameSources/mods/ArthrsShipsNShit/
+!/Resources/GameSources/mods/starsector-core/
+!/Resources/GameSources/mods/VayraMerged/
+
+!/graphics/**
+
+**/data/
+
+# uncomment these after implementing them
+**/hullmods/
+**/weapons/
+
+*mod_info.json
+
+
 /pre-computer/node_modules
-/Resources/GameSources/mods/*
-/Resources/GameSources/mods/*
+
+
 !/Resources/GameSources/mods/merger.ps1
 !/Resources/GameSources/mods/create_meta.ps1
 !/Resources/GameSources/mods/cleaner.ps1
