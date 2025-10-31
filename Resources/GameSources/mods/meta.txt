@@ -1,0 +1,3 @@
+D:\Github\StarsectorHTML\Resources\GameSources\mods\ArthrsShipsNShit
+D:\Github\StarsectorHTML\Resources\GameSources\mods\starsector-core
+D:\Github\StarsectorHTML\Resources\GameSources\mods\VayraMerged

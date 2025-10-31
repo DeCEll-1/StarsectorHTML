@@ -5,7 +5,9 @@ const REPO_NAME = "StarsectorHTML";
 const BASE_PATH = location.hostname === "127.0.0.1" ? "." : `/${REPO_NAME}`;
 
 // @ts-ignore
-let gameSources;
+let globalSources;
+let currentSelectedModId
+let mod_info;
 
 //#endregion
 
@@ -14,7 +16,7 @@ let gameSources;
 const EL = (() => {
     const ids = [
         // containers
-        "codex", "item_view",
+        "codex", "item_view", "main_div",
         // header
         "ship_name_header", "ship_image",
         // combat
@@ -33,9 +35,10 @@ const EL = (() => {
         "system_title", "system_description",
         // lists
         "mounts_list", "armaments_list", "hullmods_list",
+        "mod_list", "search_bar_mod_list_ul",
         // misc
         "design_type", "ship_description", "ship_price", "related_entries",
-        //
+        // toaster
         "toaster", "toaster_image", "toaster_title", "toaster_text",
         // search
         "search_bar_text_box", "search_bar_ship_list_ul", "search_bar"
@@ -50,6 +53,7 @@ function capitalize(s) { return (s[0].toUpperCase() + s.slice(1).toLowerCase()).
 function setValue(el, val, suffix = '') { return el.textContent = (val == null) ? '—' : val + suffix; }
 function make(html, tag = 'div') { const el = document.createElement(tag); el.innerHTML = html; return el; };
 function firstNonEmpty(...vals) { return vals.find(v => v != null && v !== "") ?? "Unknown"; }
+function getShipImagePath(ship, skin) { return `${BASE_PATH}/Resources/GameSources/mods/${globalSources[firstNonEmpty(skin?.owner, ship?.owner)].directory}/` + (firstNonEmpty(skin?.spriteName, ship?.spriteName)); }
 
 function substringLevenshtein(hay, needle) {
     hay = hay.toLowerCase(); needle = needle.toLowerCase();
@@ -87,8 +91,8 @@ function mergeByProperty(left, right, leftPropertyName, rightPropertyName) {
 
 //#region load
 Promise.all([
-    fetch(`${BASE_PATH}/Resources/GameSources/merged_game_sources.json`).then(r => r.json())
-]).then(([data]) => { gameSources = data; main(); });
+    fetch(`${BASE_PATH}/Resources/GameSources/mods/merged_game_sources.json`).then(r => r.json())
+]).then(([data]) => { globalSources = data; main(); });
 //#endregion
 
 //#region main
@@ -99,6 +103,11 @@ const searchParams = new URLSearchParams(window.location.search);
 function main() {
     const lastSearch = localStorage.getItem("last_item_searched") ?? "";
     const lastCodex = localStorage.getItem("last_searched_item") ?? "wolf";
+
+    const lastModId = localStorage.getItem("last_mod_selected") ?? "starsector-core";
+    setSelectedMod(lastModId)
+
+    updateModSearch()
 
     // @ts-ignore
     EL.search_bar_text_box.value = lastSearch;
@@ -128,19 +137,75 @@ function main() {
         handleNoSearchBar()
     if (searchParams.has("no_item_view"))
         handleNoItemView()
+    if (searchParams.has("no_mod_list"))
+        handleNoModList()
     if (searchParams.has("no_scroll_bar"))
         handleNoScrollBar()
     if (searchParams.has("no_border"))
         handleNoBorder()
     if (searchParams.has("no_share_icon"))
         handleNoShareIcon()
+    if (searchParams.has("no_lower_content"))
+        handleNoLowerContent()
 }
+//#endregion
+
+const MAX_DISTANCE = 2;
+
+//#region mod search list
+
+function setSelectedMod(selectedModId) {
+    currentSelectedModId = selectedModId
+    mod_info = globalSources[selectedModId]
+
+    localStorage.setItem("last_mod_selected", selectedModId)
+}
+
+function updateModSearch(filter = '') {
+    const ul = EL.search_bar_mod_list_ul;
+    ul.innerHTML = '';
+
+    Object.keys(globalSources).forEach(key => {
+        const mod = globalSources[key]
+        if (!mod.id && !mod.name && !mod.version && !mod.icon && !mod.directory)
+            return;
+
+        const li = document.createElement('li');
+        const modId = mod.id
+        li.addEventListener('click', () => {
+            ul.querySelectorAll(".element-highlight")
+                .forEach(el => (el.classList.contains("element-highlight")) ? el.classList.remove("element-highlight") : "")
+            li.classList.add("element-highlight")
+
+            setSelectedMod(modId);
+            // @ts-ignore
+            updateSearch(EL.search_bar_text_box.value);
+        });
+
+        // image
+        const imgDiv = make('');
+        const img = document.createElement('img');
+        img.src = `${BASE_PATH}/Resources/GameSources/` + ((mod.icon == null || !mod.icon) ? "question_mark.png" : "mods/" + mod.icon);
+        imgDiv.appendChild(img);
+        li.appendChild(imgDiv);
+
+        // text
+        const textDiv = make('');
+        const nameDiv = make(firstNonEmpty(mod.name, mod.id));
+        const authorDiv = make(mod.author);
+        textDiv.append(nameDiv, authorDiv);
+        li.appendChild(textDiv);
+
+        ul.appendChild(li);
+    })
+
+}
+
 //#endregion
 
 //#region search list
 
 // @ts-ignore
-const MAX_DISTANCE = 2;
 function updateSearch(filter = '') {
     const ul = EL.search_bar_ship_list_ul;
     ul.innerHTML = '';
@@ -148,9 +213,10 @@ function updateSearch(filter = '') {
     const candidates = [];
 
     //#region add ships to the list
-    for (const ship of gameSources.ships) {
+    for (const ship of globalSources.ships) {
+        if (ship.owner != currentSelectedModId) continue;
         if (ship.hullSize === "FIGHTER") continue;
-        const csv = gameSources.ship_data.find(s => s.id === ship.hullId);
+        const csv = globalSources.ship_data.find(s => s.id === ship.hullId);
         if (!csv || csv.hints.includes("HIDE_IN_CODEX")) continue;
         if (filter && substringLevenshtein(csv.name, filter) > MAX_DISTANCE) continue;
 
@@ -159,11 +225,12 @@ function updateSearch(filter = '') {
     //#endregion
 
     //#region add skins to the list
-    for (const skin of gameSources.skins) {
+    for (const skin of globalSources.skins) {
+        if (skin.owner != currentSelectedModId) continue;
         if (skin.restoreToBaseHull) continue;
-        const base = gameSources.ships.find(s => s.hullId === skin.baseHullId);
+        const base = globalSources.ships.find(s => s.hullId === skin.baseHullId);
         if (!base || base.hullSize === "FIGHTER") continue;
-        const csv = gameSources.ship_data.find(s => s.id === skin.baseHullId);
+        const csv = globalSources.ship_data.find(s => s.id === skin.baseHullId);
         if (!csv || csv.hints.includes("HIDE_IN_CODEX")) continue;
         if (filter && substringLevenshtein(skin.hullName, filter) > MAX_DISTANCE) continue;
 
@@ -183,12 +250,17 @@ function updateSearch(filter = '') {
     for (const c of candidates) {
         const li = document.createElement('li');
         const hullId = c.type === 'skin' ? c.skin?.skinHullId : c.ship?.hullId;
-        li.addEventListener('click', () => updateCodex(hullId));
+        li.addEventListener('click', () => {
+            updateCodex(hullId);
+            ul.querySelectorAll(".element-highlight")
+                .forEach(el => (el.classList.contains("element-highlight")) ? el.classList.remove("element-highlight") : "")
+            li.classList.add("element-highlight")
+        });
 
         // image
         const imgDiv = make('');
         const img = document.createElement('img');
-        img.src = `${BASE_PATH}/Resources/GameSources/` + (firstNonEmpty(c.skin?.spriteName, c.ship?.spriteName));
+        img.src = getShipImagePath(c.ship, c.skin)
         imgDiv.appendChild(img);
         li.appendChild(imgDiv);
 
@@ -213,63 +285,72 @@ function updateCodex(selectedHull) {
 
     //#region data collection
     /** @type {Skin} */
-    const skin = gameSources.skins.find(s => s.skinHullId === selectedHull);
+    const skin = globalSources.skins.find(s => s.skinHullId === selectedHull);
     const baseHullId = skin ? skin.baseHullId : selectedHull;
 
     /** @type {ShipJSON} */
-    const shipJson = gameSources.ships.find(s => s.hullId === baseHullId);
+    const shipJson = globalSources.ships.find(s => s.hullId === baseHullId);
+    setSelectedMod(firstNonEmpty(skin?.owner, shipJson.owner))
 
     /** @type {Description} */
-    const description = gameSources.descriptions.find(d => d.id === firstNonEmpty(skin?.descriptionId, baseHullId) && d.type === "SHIP");
+    const description = globalSources.descriptions.find(d => d.id === firstNonEmpty(skin?.descriptionId, baseHullId) && d.type === "SHIP");
     /** @type {CSV} */
-    let csv = gameSources.ship_data.find(s => s.id === baseHullId);
+    let csv = globalSources.ship_data.find(s => s.id === baseHullId);
 
     const builtInMods = Object.values(shipJson.builtInMods ?? {}).concat(skin?.builtInMods ?? []).filter(s => !(skin?.removeBuiltInMods ?? []).includes(s))
     /** @type {Hullmod[]} */
-    const hullmods = gameSources.hull_mods.filter(m => builtInMods.includes(m.id));
+    const hullmods = globalSources.hull_mods.filter(m => builtInMods.includes(m.id));
 
     // @ts-ignore
     const builtInWeapons = Object.values({ ...(shipJson.builtInWeapons ?? {}), ...(skin?.builtInWeapons ?? {}) }).filter(s => !(skin?.removeBuiltInWeapons ?? []).includes(s))
-    
+
     /** @type {Weapon[]} */
-    const weapons = gameSources.weapon_data.filter(m => builtInWeapons.includes(m.id));
+    const weapons = globalSources.weapon_data.filter(m => builtInWeapons.includes(m.id));
 
     const builtInWings = Object.values(shipJson.builtInWings ?? {}).filter(s => !(skin?.removeBuiltInWings ?? []).includes(s))
 
 
-    const wing_data_wings = gameSources.wing_data.filter(m => builtInWings.includes(m.id));
+    const wing_data_wings = globalSources.wing_data.filter(m => builtInWings.includes(m.id));
     wing_data_wings.forEach(w => {
         w.variant_no_classification = w?.variant.replace(/[A-Z].*$/, '');
         if (w.variant_no_classification.slice(-1) == "_")
             w.variant_no_classification = w.variant_no_classification.slice(0, -1)
+        const text_to_remove = ["_standard", "_pod", "_m", "_fighter"]
+        text_to_remove.forEach(text => {
+            if (w.variant_no_classification.endsWith(text)) {
+                w.variant_no_classification = w.variant_no_classification.slice(0, -text.length);
+            }
+        })
     });
 
     const wing_ship_ids = wing_data_wings.map(w => w.variant_no_classification);
     /** @type {Wing[]} */
     const wings =
         mergeByProperty(
-            gameSources.ship_data.filter(m => wing_ship_ids.includes(m.id)),
+            globalSources.ship_data.filter(m => wing_ship_ids.includes(m.id)),
             wing_data_wings,
             "id",
             "variant_no_classification"
         );
 
     /** @type {System} */
-    const system = gameSources.ship_systems.find(s => s.id === firstNonEmpty(skin?.systemId, csv["system id"]));
+    const system = globalSources.ship_systems.find(s => s.id === firstNonEmpty(skin?.systemId, csv["system id"]));
 
     /** @type {System} */
     let right_click_system;
     const hasDefenseID = (csv["defense id"] != "") ? true : false;
     if (hasDefenseID)
-        right_click_system = gameSources.ship_systems.find(s => s.id === csv["defense id"])
+        right_click_system = globalSources.ship_systems.find(s => s.id === csv["defense id"])
 
     /** @type {Description} */
-    const systemDesc = gameSources.descriptions.find(d => d.id === system?.id && d.type === "SHIP_SYSTEM");
+    const systemDesc = globalSources.descriptions.find(d => d.id === system?.id && d.type === "SHIP_SYSTEM");
 
+    const tech = firstNonEmpty(skin?.tech, skin?.manufacturer, csv["tech/manufacturer"])
     /** @type {Color} */
-    const color = skin && gameSources.colors.find(c => c.type === firstNonEmpty(skin.tech, skin.manufacturer))
-        || gameSources.colors.find(c => c.type === csv["tech/manufacturer"])
-        || { type: "Common", hex: "#BEC8C8" };
+    const color = (tech && globalSources.colors[tech]) ? {
+        type: tech,
+        hex: globalSources.colors[tech]
+    } : (tech) ? { type: tech, hex: "#9BE4FF" } : { type: "Common", hex: "#BEC8C8" };
 
     const sensorDict = { Frigate: 30, Destroyer: 60, Cruiser: 90, Capital: 150 };
     //#endregion
@@ -308,14 +389,15 @@ function updateCodex(selectedHull) {
     setPrice(csv, skin);
     //#endregion
 
+
+
     //#region return
 
     /** @type {ship_data} */
     current_ship = {
         selectedHull: selectedHull,
-        image: `${BASE_PATH}/Resources/GameSources/` + (firstNonEmpty(skin?.spriteName, shipJson?.spriteName)),
+        image: getShipImagePath(shipJson, skin),
         baseHullId: baseHullId,
-
         skin: skin,
         shipJson: shipJson,
         csv: csv,
@@ -333,10 +415,14 @@ function updateCodex(selectedHull) {
     return current_ship;
 
     //#endregion
+
+    // todo: do the, the funny mod stuff, yeah
 }
 
 let current_ship;
 
+
+// @ts-ignore
 window.updateCodex = updateCodex;
 
 function setHeader(ship, csv, skin) {
@@ -345,9 +431,8 @@ function setHeader(ship, csv, skin) {
 }
 
 function setImage(ship, skin) {
-    const src = skin?.spriteName ? skin.spriteName : ship.spriteName;
     // @ts-ignore // annoyence
-    EL.ship_image.src = `${BASE_PATH}/Resources/GameSources/${src}`;
+    EL.ship_image.src = getShipImagePath(ship, skin)
 }
 
 function setCombatStats(csv, ship, skin) {
@@ -469,7 +554,7 @@ function renderMounts(shipJson, skin, csv) {
 
 function renderBuiltInArmaments(shipJson, skin, weapons, wings) {
     let counts = {
-        ...Object.values(shipJson.builtInWeapons ?? {}).reduce((acc, id) => {
+        ...Object.values({ ...shipJson.builtInWeapons ?? {}, ...skin?.builtInWeapons ?? {} }).filter(s => !(skin?.removeBuiltInWeapons ?? []).includes(s)).reduce((acc, id) => {
             acc[id] =
             {
                 id: id,
@@ -478,21 +563,12 @@ function renderBuiltInArmaments(shipJson, skin, weapons, wings) {
             };
             return acc;
         }, {}),
-        ...Object.values(shipJson.builtInWings ?? {}).reduce((acc, id) => {
+        ...Object.values(shipJson.builtInWings ?? {}).filter(s => !(skin?.removeBuiltInWings ?? []).includes(s)).reduce((acc, id) => {
             acc[id] =
             {
                 id: id,
                 count: (acc[id]?.count ?? 0) + 1,
                 type: "WING"
-            };
-            return acc;
-        }, {}),
-        ...Object.values(skin?.builtInWeapons ?? {}).reduce((acc, id) => {
-            acc[id] =
-            {
-                id: id,
-                count: (acc[id]?.count ?? 0) + 1,
-                type: "WEAPON"
             };
             return acc;
         }, {}),
@@ -570,6 +646,13 @@ function handleNoItemView() {
     EL.codex.style.width = "205px";
 }
 
+function handleNoModList() {
+    EL.mod_list.classList.add("d-none");
+    EL.main_div.classList.remove("center-grid")
+    EL.main_div.classList.add("center-grid-img")
+
+}
+
 function handleNoScrollBar() {
     document.querySelectorAll(".simplebar-track").forEach(e => e.classList.add("d-none"));
 }
@@ -580,6 +663,11 @@ function handleNoBorder() {
 
 function handleNoShareIcon() {
     document.querySelector(".share").classList.add("d-none")
+}
+
+function handleNoLowerContent(){
+    document.querySelector(".lower-content").classList.add("d-none")
+    EL.codex.style.height = "418px"
 }
 
 //#endregion
@@ -605,6 +693,7 @@ function showToaster(title, text, img = "") {
     }, 5000);
 }
 
+// @ts-ignore
 window.showToaster = showToaster;
 
 //#endregion

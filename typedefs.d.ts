@@ -123,6 +123,7 @@ declare global {
         builtInWings    : string[];
         center          : number[];
         collisionRadius : number;
+        owner           : string;
         coversColor     : string;
         engineSlots     : EngineSlot[];
         height          : number;
@@ -180,6 +181,7 @@ declare global {
     }
 
     export interface Skin {
+        owner                : string;
         baseHullId           : string;
         skinHullId           : string;
         hullName             : string;

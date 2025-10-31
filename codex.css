@@ -26,6 +26,8 @@
     --brighten-dark-text:
         0 0 0.5px currentColor,
         0 0 0.5px currentColor;
+
+    --mod-list-width: 196px;
 }
 
 *::after,
@@ -62,12 +64,28 @@ body {
 body,
 td {
     font-size: 10px;
+    background-color: #000;
 }
 
 .center-grid {
     display: grid;
-    place-items: center;
+    grid-template-columns: var(--mod-list-width) 1040px;
     height: 100%;
+
+    width: fit-content;
+    margin: 0 auto;
+
+}
+
+.center-grid-img {
+    display: grid;
+    height: 100%;
+    align-items: center;
+    align-content: center;
+
+    justify-items: center;
+    justify-content: center;
+    margin: 0 auto;
 }
 
 .codex-border {
@@ -79,7 +97,8 @@ td {
 }
 
 .codex {
-    background-color: #000;
+    /* background-color: #000; */
+    background-color: transparent;
     /* 0.8x of original (i think) res */
     width: 1024px;
     height: 720px;
@@ -458,12 +477,20 @@ input[type=text]:focus::placeholder {
     background-color: #10303A;
 }
 
+.element-highlight {
+    background-color: #10303A;
+}
+
 .search-bar-ship-list ul li div:has(> img) {
     width: 48px;
     height: 48px;
     text-align: center;
     align-items: center;
     display: flex;
+}
+
+.search-bar-ship-list ul li div:nth-child(2) {
+    max-width: 75%;
 }
 
 .search-bar-ship-list ul li div div:first-child {
@@ -474,6 +501,7 @@ input[type=text]:focus::placeholder {
 
 .search-bar-ship-list ul li div div:nth-child(2) {
     color: #989898;
+    max-width: 93%;
 }
 
 .search-bar-ship-list ul li div img {
@@ -481,6 +509,17 @@ input[type=text]:focus::placeholder {
     max-width: 32px;
     max-height: 32px;
 }
+
+/* #endregion */
+
+/* #region mod search bar */
+
+.mod-list {
+    width: var(--mod-list-width);
+    height: 720px;
+}
+
+
 
 /* #endregion */
 

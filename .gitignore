@@ -1,6 +1,12 @@
 /Resources/GameSources/csvs/*
-!/Resources/GameSources/csvs/merger.ps1
-!/Resources/GameSources/csvs/colors.csv
 
 /Resources/GameSources/Ships/*
 /pre-computer/node_modules
+/Resources/GameSources/mods/*
+/Resources/GameSources/mods/*
+!/Resources/GameSources/mods/merger.ps1
+!/Resources/GameSources/mods/create_meta.ps1
+!/Resources/GameSources/mods/cleaner.ps1
+!/Resources/GameSources/mods/creation_date.txt
+!/Resources/GameSources/mods/merged_game_sources.json
+!/Resources/GameSources/mods/meta.txt

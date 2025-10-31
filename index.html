@@ -12,7 +12,19 @@
 <body id="body" class="font-victor-mono">
 
 
-    <div class="center-grid">
+    <div id="main_div" class="center-grid">
+
+
+        <div id="mod_list" class="mod-list d-flex search-bar-ship-list codex-border">
+
+                <div id="mod_search_bar_header" class="search-header">
+                    Indexed Mods
+                </div>
+
+            <ul id="search_bar_mod_list_ul">
+
+            </ul>
+        </div>
 
         <div id="codex" class="codex codex-border d-flex">
 
@@ -136,7 +148,8 @@
                                             <li><span id="defense_property_2_name" no-color>Shield upkeep/sec</span>
                                                 <span id="defense_property_2_val"></span>
                                             </li>
-                                            <li> <span id="defense_property_3_name" no-color>Shield flux/damage</span>
+                                            <li> <span id="defense_property_3_name" no-color>Shield
+                                                    flux/damage</span>
                                                 <span id="defense_property_3_val"></span>
                                             </li>
                                             <li>Flux capacity
@@ -198,11 +211,9 @@
                             </div>
                         </div>
 
-
-                        <div class="ship-image center center-grid">
+                        <div class="ship-image center center-grid-img">
                             <img id="ship_image" src="">
-                            <span class="share codex-border"
-                                onclick="
+                            <span class="share codex-border" onclick="
                                 navigator.clipboard.writeText(`https:\/\/decell-1.github.io/StarsectorHTML/AutoGen/Embeds/${current_ship.selectedHull}`);
                                 showToaster(
                                     'Copied to clipboard!',
@@ -237,15 +248,18 @@
             </div>
         </div>
 
+
     </div>
 
     <div id="toaster" class="toaster codex-border d-flex">
-        <img id="toaster_image" class="toaster-image" src="/Resources/GameSources/graphics/ships/venture/venture.png" alt="">
+        <img id="toaster_image" class="toaster-image" src="/Resources/GameSources/graphics/ships/venture/venture.png"
+            alt="">
         <div>
             <span id="toaster_title" class="toaster-title">title</span>
             <br>
             <div class="toaster-text">
-                <span id="toaster_text">test test test test test test test test test test test test test test test test </span>
+                <span id="toaster_text">test test test test test test test test test test test test test test test test
+                </span>
             </div>
         </div>
     </div>
