@@ -1,0 +1,7 @@
+place the mod
+run cleaner
+run meta
+run merger
+check on the site for its existence
+run the puppeteer
+profit

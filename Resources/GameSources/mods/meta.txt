@@ -1,3 +1,8 @@
 D:\Github\StarsectorHTML\Resources\GameSources\mods\ArthrsShipsNShit
+D:\Github\StarsectorHTML\Resources\GameSources\mods\random weapon collection
+D:\Github\StarsectorHTML\Resources\GameSources\mods\Ship and Weapon Pack
 D:\Github\StarsectorHTML\Resources\GameSources\mods\starsector-core
+D:\Github\StarsectorHTML\Resources\GameSources\mods\Strike Craft Expansion
+D:\Github\StarsectorHTML\Resources\GameSources\mods\Survey Corps
 D:\Github\StarsectorHTML\Resources\GameSources\mods\VayraMerged
+D:\Github\StarsectorHTML\Resources\GameSources\mods\Wondrous-Weapons

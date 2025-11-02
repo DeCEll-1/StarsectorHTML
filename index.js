@@ -52,8 +52,34 @@ const EL = (() => {
 function capitalize(s) { return (s[0].toUpperCase() + s.slice(1).toLowerCase()).replace("_", " "); }
 function setValue(el, val, suffix = '') { return el.textContent = (val == null) ? '—' : val + suffix; }
 function make(html, tag = 'div') { const el = document.createElement(tag); el.innerHTML = html; return el; };
-function firstNonEmpty(...vals) { return vals.find(v => v != null && v !== "") ?? "Unknown"; }
-function getShipImagePath(ship, skin) { return `${BASE_PATH}/Resources/GameSources/mods/${globalSources[firstNonEmpty(skin?.owner, ship?.owner)].directory}/` + (firstNonEmpty(skin?.spriteName, ship?.spriteName)); }
+function firstNonEmpty(...vals) {
+    const retVal = vals.find(v => v != null && v !== "")
+    if (retVal)
+        return retVal
+
+    return "Unknown";
+}
+function imageExists(url, callback) {
+    const img = new Image();
+
+    img.onload = function () {
+        callback(true);
+    };
+
+    img.onerror = function () {
+        callback(false);
+    };
+
+    img.src = url; // Triggers loading
+}
+
+function getShipSkinImagePath(ship, skin) {
+    return `${BASE_PATH}/Resources/GameSources/mods/${globalSources[firstNonEmpty(skin?.owner, ship?.owner)].directory}/` + (firstNonEmpty(skin?.spriteName, ship?.spriteName));
+}
+
+function getShipOwnedSkinImagePath(ship, skin) {
+    return `${BASE_PATH}/Resources/GameSources/mods/${globalSources[ship.owner].directory}/` + (firstNonEmpty(skin?.spriteName, ship?.spriteName));
+}
 
 function substringLevenshtein(hay, needle) {
     hay = hay.toLowerCase(); needle = needle.toLowerCase();
@@ -260,7 +286,10 @@ function updateSearch(filter = '') {
         // image
         const imgDiv = make('');
         const img = document.createElement('img');
-        img.src = getShipImagePath(c.ship, c.skin)
+        img.src = getShipSkinImagePath(c.ship ?? c.base, c.skin)
+        img.onerror = function () {
+            img.src = getShipOwnedSkinImagePath(c.ship ?? c.base, c.skin)
+        }
         imgDiv.appendChild(img);
         li.appendChild(imgDiv);
 
@@ -307,20 +336,16 @@ function updateCodex(selectedHull) {
     /** @type {Weapon[]} */
     const weapons = globalSources.weapon_data.filter(m => builtInWeapons.includes(m.id));
 
-    const builtInWings = Object.values(shipJson.builtInWings ?? {}).filter(s => !(skin?.removeBuiltInWings ?? []).includes(s))
+    const builtInWings = Object.values({ ...shipJson.builtInWings ?? {}, ...(skin?.builtInWings) }).filter(s => !(skin?.removeBuiltInWings ?? []).includes(s))
 
 
     const wing_data_wings = globalSources.wing_data.filter(m => builtInWings.includes(m.id));
     wing_data_wings.forEach(w => {
-        w.variant_no_classification = w?.variant.replace(/[A-Z].*$/, '');
-        if (w.variant_no_classification.slice(-1) == "_")
-            w.variant_no_classification = w.variant_no_classification.slice(0, -1)
-        const text_to_remove = ["_standard", "_pod", "_m", "_fighter"]
-        text_to_remove.forEach(text => {
-            if (w.variant_no_classification.endsWith(text)) {
-                w.variant_no_classification = w.variant_no_classification.slice(0, -text.length);
-            }
-        })
+        if (globalSources.ship_data.filter(s => s.id == w?.variant).length > 0) {
+            w.variant_no_classification = w?.variant;
+            return;
+        }
+        w.variant_no_classification = w?.variant.replace(/_[^_]*$/, '');
     });
 
     const wing_ship_ids = wing_data_wings.map(w => w.variant_no_classification);
@@ -396,7 +421,8 @@ function updateCodex(selectedHull) {
     /** @type {ship_data} */
     current_ship = {
         selectedHull: selectedHull,
-        image: getShipImagePath(shipJson, skin),
+        // @ts-ignore
+        image: EL.ship_image.src,
         baseHullId: baseHullId,
         skin: skin,
         shipJson: shipJson,
@@ -431,8 +457,13 @@ function setHeader(ship, csv, skin) {
 }
 
 function setImage(ship, skin) {
+    const img = EL.ship_image
     // @ts-ignore // annoyence
-    EL.ship_image.src = getShipImagePath(ship, skin)
+    img.src = getShipSkinImagePath(ship, skin)
+    img.onerror = function () {
+        // @ts-ignore
+        img.src = getShipOwnedSkinImagePath(ship, skin)
+    }
 }
 
 function setCombatStats(csv, ship, skin) {
@@ -665,7 +696,7 @@ function handleNoShareIcon() {
     document.querySelector(".share").classList.add("d-none")
 }
 
-function handleNoLowerContent(){
+function handleNoLowerContent() {
     document.querySelector(".lower-content").classList.add("d-none")
     EL.codex.style.height = "418px"
 }

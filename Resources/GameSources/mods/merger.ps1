@@ -196,18 +196,27 @@ foreach ($mod in $mods) {
     $skinFiles = Get-ChildItem -Path $mod -Filter *.skin -Recurse
 
     
-    $mod_info_object = ((Get-Content -Path ($mod.FullName + "\mod_info.json") -Raw) | ConvertFrom-Json)
+    $mod_info_object = ((Get-Content -Path ($mod.FullName + "\mod_info.json") -Raw) | Remove-HashCommentsFromJson | Remove-FloatSuffix | ConvertFrom-Json)
     $lunaConfigPath = $mod.FullName + "\" + "\data\config\LunaSettingsConfig.json"
     if ([System.IO.File]::Exists($lunaConfigPath)) {
         $lunaConfigFileContent = Get-Content $lunaConfigPath -Raw
-        $mod_info_object | Add-Member -NotePropertyName icon -NotePropertyValue (($mod.Name + ("/" + [regex]::new('"iconPath"\s*:\s*"([^"#]*)"').Match($lunaConfigFileContent).Groups[1].Value)))
+        $mod_info_object | Add-Member -NotePropertyName icon -NotePropertyValue (($mod.Name + ("/" + [regex]::new('"iconPath"\s*:\s*"([^"#]*)"').Match($lunaConfigFileContent).Groups[1].Value))) -Force
     }
     $mod_info_object | Add-Member -NotePropertyName directory -NotePropertyValue $mod.Name
 
     $modData = $mod_info_object
-    $commented_json = (Get-Content -Path ($mod.FullName + "\data\config\settings.json") -Raw).Replace(";", ",")
-    $uncommented_json = ($commented_json | Remove-HashCommentsFromJson | Remove-FloatSuffix)
-    $groupedData["colors"] += (($uncommented_json | ConvertFrom-Json).designTypeColors.PSObject.Properties) | Convert-PropertiesToHashTable | Convert-HashTableToColor
+    if ([System.IO.File]::Exists($mod.FullName + "\data\config\settings.json")) {
+        try { 
+            $commented_json = (Get-Content -Path ($mod.FullName + "\data\config\settings.json") -Raw).Replace(";", ",")
+            $uncommented_json = ($commented_json | Remove-HashCommentsFromJson | Remove-FloatSuffix)
+            $jsonObject = $uncommented_json | ConvertFrom-Json
+            if ($jsonObject.psobject.Properties.name -match "designTypeColors") {
+                $groupedData["colors"] += ($jsonObject.designTypeColors.PSObject.Properties) | Convert-PropertiesToHashTable | Convert-HashTableToColor
+            }
+        } catch {
+            Write-Warning "Failed to process Colors Settings: $($mod) — $_"
+        }
+    }
 
     #region csvs
     foreach ($file in $csvFiles) {
@@ -239,7 +248,7 @@ foreach ($mod in $mods) {
     foreach ($file in $shipFiles) {
         Write-Host "Processing SHIP $($file.FullName)..."
         try {
-            $jsonContent = Get-Content -Path $file.FullName -Raw | ConvertFrom-Json
+            $jsonContent = Get-Content -Path $file.FullName -Raw | Remove-HashCommentsFromJson | Remove-FloatSuffix | ConvertFrom-Json
             $jsonContent | Add-Member -NotePropertyName owner -NotePropertyValue $mod_info_object.id
             $shipsData += $jsonContent
         } catch {
@@ -301,4 +310,4 @@ foreach ($mod in $mods) {
 
 $groupedData["colors"] = $groupedData["colors"] | Merge-Hashtable
 
-$groupedData | ConvertTo-Json -Depth 10  | Set-Content -Path $OutputFile -Encoding UTF8
+$groupedData | ConvertTo-Json -Depth 10 -Compress | Set-Content -Path $OutputFile -Encoding UTF8

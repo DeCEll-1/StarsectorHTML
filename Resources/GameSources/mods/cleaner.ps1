@@ -12,9 +12,9 @@ if (-not (Test-Path -LiteralPath $root)) {
 
 $whitelist = @(
     # graphics
-    "*\graphics\ships\*",
-    "*\graphics\hullmods\*",
-    "*\graphics\weapons\*",
+    "*\graphics\*ships\*",
+    "*\graphics\*hullmods\*",
+    "*\graphics\*weapons\*",
     
     # file extensions
     "*.skin",
@@ -29,6 +29,7 @@ $whitelist = @(
     "*settings.json",
     "*mod_info.json",
     "*LunaSettingsConfig.json"
+    "*merged_game_sources.json"
     
     # csvs
     "*descriptions.csv",
@@ -37,8 +38,6 @@ $whitelist = @(
     "*ship_systems.csv",
     "*wing_data.csv",
     "*weapon_data.csv"
-
-
 )
 
 function Get-RelativePath($fullPath, $root) {
