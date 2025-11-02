@@ -102,6 +102,8 @@ const sf = 1.5;
                         entry.color.hex
                     ).replaceAll("{SEARCH_TEXT}",
                         firstNonEmpty(entry.skin?.hullName, entry.csv.name)
+                    ).replaceAll("{SHIP_DESCRIPTION}",
+                        (entry.skin?.descriptionPrefix ?? "") + "\n" + entry.description.text1.split("\r\n")[0]
                     )
             );
         }
