@@ -706,10 +706,34 @@ function handleNoLowerContent() {
 //#region toaster
 
 function showToaster(title, text, img = "") {
-    const toaster = EL.toaster;
-    const toaster_image = EL.toaster_image;
-    const toaster_title = EL.toaster_title;
-    const toaster_text = EL.toaster_text;
+    const toaster = document.createElement("div");
+    toaster.classList.add("toaster")
+    toaster.classList.add("d-flex")
+    toaster.classList.add("codex-border")
+
+    const toaster_image = document.createElement("img");
+    toaster_image.classList.add("toaster-image")
+
+    const toaster_content_container = document.createElement("div");
+
+
+    const toaster_title = document.createElement("span");
+    toaster_title.classList.add("toaster-title")
+
+    const toaster_text_container = document.createElement("div");
+    toaster_text_container.classList.add("toaster-text");
+
+    const toaster_text = document.createElement("span");
+
+
+    toaster.appendChild(toaster_image);
+    toaster.appendChild(toaster_content_container);
+    toaster_content_container.appendChild(toaster_title);
+    toaster_content_container.appendChild(toaster_text_container);
+    toaster_text_container.appendChild(toaster_text);
+
+    document.body.appendChild(toaster);
+
 
     toaster_title.innerText = title;
     toaster_text.innerText = text;
@@ -717,10 +741,14 @@ function showToaster(title, text, img = "") {
     // @ts-ignore
     toaster_image.src = img;
 
-    toaster.style.right = "0px";
+    toaster.style.right = "-274px";
+    setTimeout(() => {
+        toaster.style.right = "0px";
+    }, 25);
 
     setTimeout(() => {
-        toaster.style.right = "-274px";
+    toaster.style.right = "-274px";
+        setTimeout(() => toaster.remove(), 1000)
     }, 5000);
 }
 
