@@ -104,7 +104,7 @@ const sf = 1.5;
                     ).replaceAll("{SEARCH_TEXT}",
                         firstNonEmpty(entry.skin?.hullName, entry.csv.name)
                     ).replaceAll("{SHIP_DESCRIPTION}",
-                        (lore.length > 250) ? lore.substring(0, lore.indexOf(".", 250)) : lore
+                        (lore.length > 150) ? lore.substring(0, lore.indexOf(".", 150) + 1) : lore
                     )
             );
         }
