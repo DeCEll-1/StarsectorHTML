@@ -1,5 +1,7 @@
 D:\Github\StarsectorHTML\Resources\GameSources\mods\ArthrsShipsNShit
+D:\Github\StarsectorHTML\Resources\GameSources\mods\Nes's SAW
 D:\Github\StarsectorHTML\Resources\GameSources\mods\random weapon collection
+D:\Github\StarsectorHTML\Resources\GameSources\mods\Secrets of the Frontier 0.15.1
 D:\Github\StarsectorHTML\Resources\GameSources\mods\Ship and Weapon Pack
 D:\Github\StarsectorHTML\Resources\GameSources\mods\starsector-core
 D:\Github\StarsectorHTML\Resources\GameSources\mods\Strike Craft Expansion

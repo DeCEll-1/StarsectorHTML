@@ -49,7 +49,7 @@ const EL = (() => {
 
 //#region helper functions
 
-function capitalize(s) { return (s[0].toUpperCase() + s.slice(1).toLowerCase()).replace("_", " "); }
+function capitalize(s) { return ((s[0] ?? "NULL").toUpperCase() + (s ?? "NULL").slice(1).toLowerCase()).replace("_", " "); }
 function setValue(el, val, suffix = '') { return el.textContent = (val == null) ? '—' : val + suffix; }
 function make(html, tag = 'div') { const el = document.createElement(tag); el.innerHTML = html; return el; };
 function firstNonEmpty(...vals) {
@@ -334,7 +334,7 @@ function updateCodex(selectedHull) {
     const builtInWeapons = Object.values({ ...(shipJson.builtInWeapons ?? {}), ...(skin?.builtInWeapons ?? {}) }).filter(s => !(skin?.removeBuiltInWeapons ?? []).includes(s))
 
     /** @type {Weapon[]} */
-    const weapons = globalSources.weapon_data.filter(m => builtInWeapons.includes(m.id));
+    const weapons = globalSources.weapon_data.filter(w => builtInWeapons.includes(w.id) && !w.hints.trim().toUpperCase().split(" ").includes("SYSTEM"))
 
     const builtInWings = Object.values({ ...shipJson.builtInWings ?? {}, ...(skin?.builtInWings) }).filter(s => !(skin?.removeBuiltInWings ?? []).includes(s))
 
@@ -585,12 +585,13 @@ function renderMounts(shipJson, skin, csv) {
 
 function renderBuiltInArmaments(shipJson, skin, weapons, wings) {
     let counts = {
-        ...Object.values({ ...shipJson.builtInWeapons ?? {}, ...skin?.builtInWeapons ?? {} }).filter(s => !(skin?.removeBuiltInWeapons ?? []).includes(s)).reduce((acc, id) => {
-            acc[id] =
+        ...Object.values(weapons).reduce((acc, w) => {
+            acc[w.id] = // hope this doesnt explode!!!!
             {
-                id: id,
-                count: (acc[id]?.count ?? 0) + 1,
-                type: "WEAPON"
+                id: w,
+                count: (acc[w.id]?.count ?? 0) + 1,
+                type: "WEAPON",
+                weapon: w
             };
             return acc;
         }, {}),
@@ -610,7 +611,7 @@ function renderBuiltInArmaments(shipJson, skin, weapons, wings) {
     for (const [key, item] of Object.entries(counts)) {
         let li;
         if (item.type == "WEAPON")
-            li = make(`<span>${item.count}x</span> ${capitalize(weapons.find(s => s.id == item.id).name)}`, 'li');
+            li = make(`<span>${item.count}x</span> ${capitalize(item.weapon.name)}`, 'li');
         else if (item.type == "WING")
             li = make(`<span>${item.count}x</span> ${capitalize(wings.find(s => s.id == item.id).name)} Drone Wing`, 'li');
 
@@ -747,7 +748,7 @@ function showToaster(title, text, img = "") {
     }, 25);
 
     setTimeout(() => {
-    toaster.style.right = "-274px";
+        toaster.style.right = "-274px";
         setTimeout(() => toaster.remove(), 1000)
     }, 5000);
 }
