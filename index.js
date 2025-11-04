@@ -334,7 +334,16 @@ function updateCodex(selectedHull) {
     const builtInWeapons = Object.values({ ...(shipJson.builtInWeapons ?? {}), ...(skin?.builtInWeapons ?? {}) }).filter(s => !(skin?.removeBuiltInWeapons ?? []).includes(s))
 
     /** @type {Weapon[]} */
-    const weapons = globalSources.weapon_data.filter(w => builtInWeapons.includes(w.id) && !w.hints.trim().toUpperCase().split(" ").includes("SYSTEM"))
+    const weapons = globalSources.weapon_data.filter(w => {
+        const tags = w.tags.trim().toLowerCase().split(",").map(s => s.trim());
+
+        return builtInWeapons.includes(w.id)
+        // && !tags.includes("no_drop")
+        // && !tags.includes("no_sell")
+        // && !tags.includes("no_dealer")
+        // && !tags.includes("restricted")
+    }
+    );
 
     const builtInWings = Object.values({ ...shipJson.builtInWings ?? {}, ...(skin?.builtInWings) }).filter(s => !(skin?.removeBuiltInWings ?? []).includes(s))
 
@@ -583,9 +592,26 @@ function renderMounts(shipJson, skin, csv) {
     if (!EL.mounts_list.children.length) EL.mounts_list.appendChild(make("None", 'li'));
 }
 
-function renderBuiltInArmaments(shipJson, skin, weapons, wings) {
+function renderBuiltInArmaments(
+    /** @type {ShipJSON} */
+    shipJson,
+    /** @type {Skin} */
+    skin,
+    /** @type {Weapon[]} */
+    weapons,
+    /** @type {Wing[]} */
+    wings
+) {
+
     let counts = {
-        ...Object.values(weapons).reduce((acc, w) => {
+        ...Object.values(
+            weapons.filter(
+                w => shipJson.weaponSlots
+                    .find(s => s.id == Object.keys(shipJson.builtInWeapons ?? {})
+                        .find(k => shipJson.builtInWeapons[k] == w.id)
+                    )?.type != "DECORATIVE"
+            ) // what this does that it gets the weapon slot from weapon id and checks if the slot is decorative
+        ).reduce((acc, w) => {
             acc[w.id] = // hope this doesnt explode!!!!
             {
                 id: w,

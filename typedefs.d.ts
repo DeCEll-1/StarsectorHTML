@@ -172,6 +172,7 @@ declare global {
         Composite = "COMPOSITE",
         Synergy   = "SYNERGY",
         Universal = "UNIVERSAL",
+        Decorative = "DECORATIVE",
     }
 
     export enum Size {
