@@ -3,19 +3,20 @@ export { }
 declare global {
 
     export interface ship_data {
-        selectedHull : string;
-        image        : string;
-        skin         : Skin;
-        baseHullId   : string;
-        shipJson     : ShipJSON;
-        csv          : CSV;
-        description  : Description;
-        weapons      : Weapon[];
-        wings        : Wing[];
-        hullmods     : Hullmod[];
-        system       : System;
-        systemDesc   : Description;
-        color        : Color;
+        selectedHull       : string;
+        image              : string;
+        skin               : Skin;
+        baseHullId         : string;
+        shipJson           : ShipJSON;
+        csv                : CSV;
+        description        : Description;
+        weapons            : Weapon[];
+        wings              : Wing[];
+        hullmods           : Hullmod[];
+        system             : System;
+        systemDesc         : Description;
+        color              : Color;
+        right_click_system : System;
     }
 
     export interface Color {
@@ -165,13 +166,13 @@ declare global {
     }
 
     export enum WeaponTypes {
-        Ballistic = "BALLISTIC",
-        Energy    = "ENERGY",
-        Missile   = "MISSILE",
-        Hybrid    = "HYBRID",
-        Composite = "COMPOSITE",
-        Synergy   = "SYNERGY",
-        Universal = "UNIVERSAL",
+        Ballistic  = "BALLISTIC",
+        Energy     = "ENERGY",
+        Missile    = "MISSILE",
+        Hybrid     = "HYBRID",
+        Composite  = "COMPOSITE",
+        Synergy    = "SYNERGY",
+        Universal  = "UNIVERSAL",
         Decorative = "DECORATIVE",
     }
 

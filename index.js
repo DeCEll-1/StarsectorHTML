@@ -4,8 +4,9 @@ const REPO_NAME = "StarsectorHTML";
 // @ts-ignore
 const BASE_PATH = location.hostname === "127.0.0.1" ? "." : `/${REPO_NAME}`;
 const ICON_FOLDER_PATH = `${BASE_PATH}/Resources/Images/Icons`
-const ERROR_ICON_PATH = `${ICON_FOLDER_PATH}/alert.png`
-const DOWNLOAD_ICON_PATH = `${ICON_FOLDER_PATH}/download.png`
+const ICON_ERROR_PATH = `${ICON_FOLDER_PATH}/alert.png`
+const ICON_DOWNLOAD_PATH = `${ICON_FOLDER_PATH}/download.png`
+const ICON_INFO_PATH = `${ICON_FOLDER_PATH}/info.png`
 
 // @ts-ignore
 let globalSources;
@@ -130,7 +131,7 @@ function load() {
 
 function runMain() {
     if (globalSources)
-        main();
+        setTimeout(() => main(), 10);
     else
         setTimeout(() => runMain(), 100);
 }
@@ -148,7 +149,7 @@ async function checkForNewSources() {
 
         // latest source is younger
 
-        showToaster("Updating...", "Updating the data from latest source.", DOWNLOAD_ICON_PATH)
+        showToaster("Updating...", "Updating the data from latest source.", ICON_DOWNLOAD_PATH)
 
         await Promise.all([
             fetch(`${BASE_PATH}/Resources/GameSources/mods/merged_game_sources.json`).then(r => r.json())
@@ -157,7 +158,7 @@ async function checkForNewSources() {
         localStorage.setItem("global_sources", JSON.stringify(globalSources));
 
     } catch (err) {
-        showToaster("Error", "Failed to check or update resources, check logs for more details.", ERROR_ICON_PATH)
+        showToaster("Error", "Failed to check or update resources, check logs for more details.", ICON_ERROR_PATH)
         console.error(err);
     }
 
@@ -168,7 +169,7 @@ function useCachedSources() {
         if (localStorage.getItem("global_sources"))
             globalSources = JSON.parse(localStorage.getItem("global_sources"));
     } catch (err) {
-        showToaster("Error", "Failed to check or update resources, check logs for more details.", ERROR_ICON_PATH);
+        showToaster("Error", "Failed to check or update resources, check logs for more details.", ICON_ERROR_PATH);
         console.error(err);
     }
 
@@ -236,10 +237,46 @@ const MAX_DISTANCE = 2;
 //#region mod search list
 
 function setSelectedMod(selectedModId) {
-    currentSelectedModId = selectedModId
+    const oldID = currentSelectedModId;
+    currentSelectedModId = selectedModId;
     mod_info = globalSources[selectedModId]
 
+
+    function getModLI() {
+        // Find the matching mod item by text content
+        const el = Array.from(
+            document.querySelectorAll("#search_bar_mod_list_ul li > div:nth-of-type(2) > div:nth-of-type(1)")
+        ).find(div =>
+            div.textContent.trim().toLowerCase() === mod_info.name.trim().toLowerCase()
+        );
+        return el?.closest("li"); // cleaner than parentElement.parentElement
+    }
+
+    function highlightTarget() {
+        const target = getModLI();
+        if (target) {
+            target.classList.add("element-highlight");
+            return true;
+        }
+        return false;
+    }
+
+    let target = getModLI();
+    if (!highlightTarget()) {
+        setTimeout(() => {
+            if (!highlightTarget()) {
+                showToaster(
+                    "Error.",
+                    `Could not find the mod list element to highlight for ${mod_info.name}.`,
+                    ICON_ERROR_PATH
+                );
+            }
+        }, 50);
+    }
+
     localStorage.setItem("last_mod_selected", selectedModId)
+    if (oldID != selectedModId)
+        updateSearch();
 }
 
 function updateModSearch(filter = '') {
@@ -331,6 +368,8 @@ function updateSearch(filter = '') {
     for (const c of candidates) {
         const li = document.createElement('li');
         const hullId = c.type === 'skin' ? c.skin?.skinHullId : c.ship?.hullId;
+        if (localStorage.getItem("last_searched_item") == hullId)
+            li.classList.add("element-highlight")
         li.addEventListener('click', () => {
             updateCodex(hullId);
             ul.querySelectorAll(".element-highlight")
@@ -364,7 +403,7 @@ function updateSearch(filter = '') {
 
 //#region populating codex
 
-function updateCodex(selectedHull) {
+function updateCodex(selectedHull, log = true) {
     localStorage.setItem("last_searched_item", selectedHull);
 
     //#region data collection
@@ -445,21 +484,23 @@ function updateCodex(selectedHull) {
     //#endregion
 
     //#region log
-    console.log(" ")
-    console.log("Skin data:", skin);
-    console.log("Base hull ID:", baseHullId);
-    console.log("Ship JSON:", shipJson);
-    console.log("CSV data:", csv);
-    console.log("Description:", description);
-    console.log("Weapons:", weapons)
-    console.log("Wings:", wings)
-    console.log("Hullmods:", hullmods);
-    console.log("Ship system:", system);
-    if (hasDefenseID)
-        console.log("Ship right click system:", right_click_system);
-    console.log("System description:", systemDesc);
-    console.log("Design color:", color);
-    console.log(" ")
+    if (log) {
+        console.log(" ")
+        console.log("Skin data:", skin);
+        console.log("Base hull ID:", baseHullId);
+        console.log("Ship JSON:", shipJson);
+        console.log("CSV data:", csv);
+        console.log("Description:", description);
+        console.log("Weapons:", weapons)
+        console.log("Wings:", wings)
+        console.log("Hullmods:", hullmods);
+        console.log("Ship system:", system);
+        if (hasDefenseID)
+            console.log("Ship right click system:", right_click_system);
+        console.log("System description:", systemDesc);
+        console.log("Design color:", color);
+        console.log(" ")
+    }
     //#endregion
 
     //#region render
@@ -477,8 +518,6 @@ function updateCodex(selectedHull) {
     setDescription(description, skin);
     setPrice(csv, skin);
     //#endregion
-
-
 
     //#region return
 
@@ -507,6 +546,7 @@ function updateCodex(selectedHull) {
     //#endregion
 }
 
+/** @type {ship_data} */
 let current_ship;
 
 
@@ -833,5 +873,40 @@ function showToaster(title, text, img = "") {
 
 // @ts-ignore
 window.showToaster = showToaster;
+
+//#endregion
+
+//#region tests
+
+function runUpdateCodexTest() {
+    const candidates = [];
+
+    for (const ship of globalSources.ships) {
+        if (ship.hullSize === "FIGHTER") continue;
+        const csv = globalSources.ship_data.find(s => s.id === ship.hullId);
+        if (!csv || csv.hints.includes("HIDE_IN_CODEX")) continue;
+
+        candidates.push({ type: 'ship', ship, csv });
+    }
+    for (const skin of globalSources.skins) {
+        if (skin.restoreToBaseHull) continue;
+        const base = globalSources.ships.find(s => s.hullId === skin.baseHullId);
+        if (!base || base.hullSize === "FIGHTER") continue;
+        const csv = globalSources.ship_data.find(s => s.id === skin.baseHullId);
+        if (!csv || csv.hints.includes("HIDE_IN_CODEX")) continue;
+
+        candidates.push({ type: 'skin', skin, base, csv });
+    }
+
+    candidates.forEach(
+        s => {
+            try {
+                updateCodex(firstNonEmpty(s.skin?.skinHullId, s.csv.id), false)
+            } catch (err) {
+                console.error(err)
+            }
+        }
+    )
+}
 
 //#endregion
