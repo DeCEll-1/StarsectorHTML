@@ -309,5 +309,6 @@ foreach ($mod in $mods) {
 }
 
 $groupedData["colors"] = $groupedData["colors"] | Merge-Hashtable
+$groupedData["creationDate"] = Get-Date (Get-Date).ToUniversalTime() -Format 'o'
 
 $groupedData | ConvertTo-Json -Depth 10 -Compress | Set-Content -Path $OutputFile -Encoding UTF8

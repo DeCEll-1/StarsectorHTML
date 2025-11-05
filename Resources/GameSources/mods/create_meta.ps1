@@ -6,5 +6,5 @@ foreach ($dir in Get-ChildItem -Directory) {
 }
 
 Clear-Content -Path "./creation_date.txt"
-Add-Content -Path "./creation_date.txt" -Value (Get-Date (Get-Date).ToUniversalTime() -Format 'o')
+Add-Content -Path "./creation_date.txt" -Value 
 

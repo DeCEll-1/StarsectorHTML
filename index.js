@@ -3,6 +3,9 @@
 const REPO_NAME = "StarsectorHTML";
 // @ts-ignore
 const BASE_PATH = location.hostname === "127.0.0.1" ? "." : `/${REPO_NAME}`;
+const ICON_FOLDER_PATH = `${BASE_PATH}/Resources/Images/Icons`
+const ERROR_ICON_PATH = `${ICON_FOLDER_PATH}/alert.png`
+const DOWNLOAD_ICON_PATH = `${ICON_FOLDER_PATH}/download.png`
 
 // @ts-ignore
 let globalSources;
@@ -116,9 +119,61 @@ function mergeByProperty(left, right, leftPropertyName, rightPropertyName) {
 //#endregion
 
 //#region load
-Promise.all([
-    fetch(`${BASE_PATH}/Resources/GameSources/mods/merged_game_sources.json`).then(r => r.json())
-]).then(([data]) => { globalSources = data; main(); });
+
+load();
+function load() {
+
+    useCachedSources();
+    checkForNewSources(); // check and update the source lazly
+    setTimeout(() => runMain(), 50); // a lil bit of delay so it doesnt explode
+}
+
+function runMain() {
+    if (globalSources)
+        main();
+    else
+        setTimeout(() => runMain(), 100);
+}
+
+async function checkForNewSources() {
+    try {
+        const updateTimeURL = "https://raw.githubusercontent.com/DeCEll-1/StarsectorHTML/refs/heads/main/Resources/GameSources/mods/creation_date.txt";
+
+        const latestSourceDate = new Date(
+            (await (await fetch(updateTimeURL)).text()).match(/(.*\.\d{3})/g)[0] + "Z"
+        )
+        const currentDate = new Date(globalSources?.creationDate || 0);
+        if (currentDate >= latestSourceDate)
+            return;
+
+        // latest source is younger
+
+        showToaster("Updating...", "Updating the data from latest source.", DOWNLOAD_ICON_PATH)
+
+        await Promise.all([
+            fetch(`${BASE_PATH}/Resources/GameSources/mods/merged_game_sources.json`).then(r => r.json())
+        ]).then(([data]) => { globalSources = data; })
+
+        localStorage.setItem("global_sources", JSON.stringify(globalSources));
+
+    } catch (err) {
+        showToaster("Error", "Failed to check or update resources, check logs for more details.", ERROR_ICON_PATH)
+        console.error(err);
+    }
+
+}
+
+function useCachedSources() {
+    try {
+        if (localStorage.getItem("global_sources"))
+            globalSources = JSON.parse(localStorage.getItem("global_sources"));
+    } catch (err) {
+        showToaster("Error", "Failed to check or update resources, check logs for more details.", ERROR_ICON_PATH);
+        console.error(err);
+    }
+
+}
+
 //#endregion
 
 //#region main
@@ -450,8 +505,6 @@ function updateCodex(selectedHull) {
     return current_ship;
 
     //#endregion
-
-    // todo: do the, the funny mod stuff, yeah
 }
 
 let current_ship;
@@ -602,7 +655,6 @@ function renderBuiltInArmaments(
     /** @type {Wing[]} */
     wings
 ) {
-
     let counts = {
         ...Object.values(
             weapons.filter(
