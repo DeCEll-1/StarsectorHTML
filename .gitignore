@@ -21,7 +21,9 @@
 **/data/
 
 # uncomment these after implementing them
-**/hullmods/
+# **/hullmods/
+# ^ well hullmods wasnt the first thing thats on my list, but sotf uses a file under the hullmods for its
+# icon and i rather implement the hullmods than just uploading them meaninglessly
 **/weapons/
 
 *mod_info.json
