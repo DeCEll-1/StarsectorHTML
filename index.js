@@ -1,4 +1,8 @@
 //#region global vars
+
+// get this file from: https://www.npmjs.com/package/simplebar?activeTab=code
+/// <reference path="./Resources/libs/SimpleBar/simplebar.js" />
+
 // @ts-ignore
 const REPO_NAME = "StarsectorHTML";
 // @ts-ignore
@@ -45,7 +49,7 @@ const EL = (() => {
         // toaster
         "toaster", "toaster_image", "toaster_title", "toaster_text",
         // search
-        "search_bar_text_box", "search_bar_ship_list_ul", "search_bar"
+        "search_bar_text_box", "search_bar_list_ul", "search_bar", "search_list_container"
     ];
     return Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
 })();
@@ -255,7 +259,21 @@ function setSelectedMod(selectedModId) {
     function highlightTarget() {
         const target = getModLI();
         if (target) {
+
+            if (target.classList.contains("element-highlight"))
+                return true;
+
             target.classList.add("element-highlight");
+
+            // const simplebar = SimpleBar.instances.get(EL.search_list_container);
+            // const scrollElement = simplebar.getScrollElement();
+
+            // scrollElement.scrollTo({
+            //     top: target.offsetTop,
+            //     behavior: 'smooth'
+            // }); // todo: make the mod list scrollable
+
+
             return true;
         }
         return false;
@@ -325,7 +343,7 @@ function updateModSearch(filter = '') {
 
 // @ts-ignore
 function updateSearch(filter = '') {
-    const ul = EL.search_bar_ship_list_ul;
+    const ul = EL.search_bar_list_ul;
     ul.innerHTML = '';
 
     const candidates = [];
@@ -368,8 +386,20 @@ function updateSearch(filter = '') {
     for (const c of candidates) {
         const li = document.createElement('li');
         const hullId = c.type === 'skin' ? c.skin?.skinHullId : c.ship?.hullId;
-        if (localStorage.getItem("last_searched_item") == hullId)
+        if (localStorage.getItem("last_searched_item") == hullId) {
             li.classList.add("element-highlight")
+
+            const simplebar = SimpleBar.instances.get(EL.search_list_container);
+            const scrollElement = simplebar.getScrollElement();
+
+            setTimeout(() => {
+                scrollElement.scrollTo({
+                    top: li.offsetTop - 56,
+                    behavior: 'smooth'
+                });
+            }, 50);
+
+        }
         li.addEventListener('click', () => {
             updateCodex(hullId);
             ul.querySelectorAll(".element-highlight")
