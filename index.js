@@ -7,15 +7,49 @@
 const REPO_NAME = "StarsectorHTML";
 // @ts-ignore
 const BASE_PATH = location.hostname === "127.0.0.1" ? "." : `/${REPO_NAME}`;
+const CODEX_ICON_FOLDER_PATH = `${BASE_PATH}/Resources/Images/Codex`
+const { } = "------------CODEX------------";
+const CODEX_ICON_ABILITIES = `${CODEX_ICON_FOLDER_PATH}/abilities.png`
+const CODEX_ICON_COMMODITIES = `${CODEX_ICON_FOLDER_PATH}/commodities.png`
+const CODEX_ICON_CUSTOM = `${CODEX_ICON_FOLDER_PATH}/custom.png`
+const CODEX_ICON_FIGHTERS = `${CODEX_ICON_FOLDER_PATH}/fighters.png`
+const CODEX_ICON_GALLERY = `${CODEX_ICON_FOLDER_PATH}/gallery.png`
+const CODEX_ICON_GAME_MECHANICS = `${CODEX_ICON_FOLDER_PATH}/game_mechanics.png`
+const CODEX_ICON_HULLMODS = `${CODEX_ICON_FOLDER_PATH}/hullmods.png`
+const CODEX_ICON_INDUSTRIES = `${CODEX_ICON_FOLDER_PATH}/industries.png`
+const CODEX_ICON_MANUAL_ARMOR = `${CODEX_ICON_FOLDER_PATH}/manual_armor.png`
+const CODEX_ICON_MANUAL_BALLISTIC_WEAPONS = `${CODEX_ICON_FOLDER_PATH}/manual_ballistic_weapons.png`
+const CODEX_ICON_MANUAL_COMBAT = `${CODEX_ICON_FOLDER_PATH}/manual_combat.png`
+const CODEX_ICON_MANUAL_ENERGY_WEAPONS = `${CODEX_ICON_FOLDER_PATH}/manual_energy_weapons.png`
+const CODEX_ICON_MANUAL_FLUX = `${CODEX_ICON_FOLDER_PATH}/manual_flux.png`
+const CODEX_ICON_MANUAL_MISSILES = `${CODEX_ICON_FOLDER_PATH}/manual_missiles.png`
+const CODEX_ICON_MANUAL_OTHER = `${CODEX_ICON_FOLDER_PATH}/manual_other.png`
+const CODEX_ICON_MANUAL_SHIELDS = `${CODEX_ICON_FOLDER_PATH}/manual_shields.png`
+const CODEX_ICON_MANUAL_TRIPAD = `${CODEX_ICON_FOLDER_PATH}/manual_tripad.png`
+const CODEX_ICON_MANUAL_UI = `${CODEX_ICON_FOLDER_PATH}/manual_ui.png`
+const CODEX_ICON_MANUAL_UI2 = `${CODEX_ICON_FOLDER_PATH}/manual_ui2.png`
+const CODEX_ICON_MANUAL_VENTING = `${CODEX_ICON_FOLDER_PATH}/manual_venting.png`
+const CODEX_ICON_MARKET_CONDITIONS = `${CODEX_ICON_FOLDER_PATH}/market_conditions.png`
+const CODEX_ICON_SHIPS = `${CODEX_ICON_FOLDER_PATH}/ships.png`
+const CODEX_ICON_SHIP_SYSTEMS = `${CODEX_ICON_FOLDER_PATH}/ship_systems.png`
+const CODEX_ICON_SKILLS = `${CODEX_ICON_FOLDER_PATH}/skills.png`
+const CODEX_ICON_SPACERS_MANUAL = `${CODEX_ICON_FOLDER_PATH}/spacers_manual.png`
+const CODEX_ICON_SPECIAL_ITEMS = `${CODEX_ICON_FOLDER_PATH}/special_items.png`
+const CODEX_ICON_STARS_PLANETS = `${CODEX_ICON_FOLDER_PATH}/stars_planets.png`
+const CODEX_ICON_STATIONS = `${CODEX_ICON_FOLDER_PATH}/stations.png`
+const CODEX_ICON_WEAPONS = `${CODEX_ICON_FOLDER_PATH}/weapons.png`
+const { } = "------------ICONS------------";
 const ICON_FOLDER_PATH = `${BASE_PATH}/Resources/Images/Icons`
 const ICON_ERROR_PATH = `${ICON_FOLDER_PATH}/alert.png`
 const ICON_DOWNLOAD_PATH = `${ICON_FOLDER_PATH}/download.png`
 const ICON_INFO_PATH = `${ICON_FOLDER_PATH}/info.png`
+const ICON_CODEX_ARROW_UP = `${ICON_FOLDER_PATH}/arrow_up.png`
 
 // @ts-ignore
 let globalSources;
 let currentSelectedModId
 let mod_info;
+
 
 //#endregion
 
@@ -89,6 +123,17 @@ function getShipOwnedSkinImagePath(ship, skin) {
     return `${BASE_PATH}/Resources/GameSources/mods/${globalSources[ship.owner].directory}/` + (firstNonEmpty(skin?.spriteName, ship?.spriteName));
 }
 
+/**
+ * @param {HTMLImageElement} img
+ * @param {{ ship?: ShipJSON; base?: ShipJSON; skin?: Skin }} c
+ */
+function updateImgShipSource(img, c) {
+    img.src = getShipSkinImagePath(c.ship ?? c.base, c.skin)
+    img.onerror = function () {
+        img.src = getShipOwnedSkinImagePath(c.ship ?? c.base, c.skin)
+    }
+}
+
 function substringLevenshtein(hay, needle) {
     hay = hay.toLowerCase(); needle = needle.toLowerCase();
     if (hay.includes(needle)) return 0;
@@ -153,16 +198,16 @@ async function checkForNewSources() {
 
         // latest source is younger
 
-        showToaster("Updating...", "Updating the data from latest source.", ICON_DOWNLOAD_PATH)
+        showToaster("Updating...", "Updating the data from latest source.", { img: ICON_DOWNLOAD_PATH })
 
         await Promise.all([
             fetch(`${BASE_PATH}/Resources/GameSources/mods/merged_game_sources.json`).then(r => r.json())
         ]).then(([data]) => { globalSources = data; })
 
-        localStorage.setItem("global_sources", JSON.stringify(globalSources));
+        localStorage.setItem(LocalStorageKeys.global_sources, JSON.stringify(globalSources));
 
     } catch (err) {
-        showToaster("Error", "Failed to check or update resources, check logs for more details.", ICON_ERROR_PATH)
+        showToaster("Error", "Failed to check or update resources, check logs for more details.", { img: ICON_ERROR_PATH })
         console.error(err);
     }
 
@@ -170,10 +215,10 @@ async function checkForNewSources() {
 
 function useCachedSources() {
     try {
-        if (localStorage.getItem("global_sources"))
-            globalSources = JSON.parse(localStorage.getItem("global_sources"));
+        if (localStorage.getItem(LocalStorageKeys.global_sources))
+            globalSources = JSON.parse(localStorage.getItem(LocalStorageKeys.global_sources));
     } catch (err) {
-        showToaster("Error", "Failed to check or update resources, check logs for more details.", ICON_ERROR_PATH);
+        showToaster("Error", "Failed to check or update resources, check logs for more details.", { img: ICON_ERROR_PATH });
         console.error(err);
     }
 
@@ -183,14 +228,14 @@ function useCachedSources() {
 
 //#region main
 
-// @ts-ignore
 const searchParams = new URLSearchParams(window.location.search);
 
 function main() {
-    const lastSearch = localStorage.getItem("last_item_searched") ?? "";
-    const lastCodex = localStorage.getItem("last_searched_item") ?? "wolf";
+    const lastSearch = localStorage.getItem(LocalStorageKeys.last_item_searched) ?? "";
+    const lastCodex = firstNonEmpty(localStorage.getItem(LocalStorageKeys.last_searched_item), "wolf");
+    search_category = firstNonEmpty(localStorage.getItem(LocalStorageKeys.last_selected_category), Categories.None);
 
-    const lastModId = localStorage.getItem("last_mod_selected") ?? "starsector-core";
+    const lastModId = firstNonEmpty(localStorage.getItem(LocalStorageKeys.last_mod_selected), "starsector-core");
     setSelectedMod(lastModId)
 
     updateModSearch()
@@ -201,7 +246,7 @@ function main() {
         // @ts-ignore
         updateSearch(EL.search_bar_text_box.value);
         // @ts-ignore
-        localStorage.setItem("last_item_searched", EL.search_bar_text_box.value);
+        localStorage.setItem(LocalStorageKeys.last_item_searched, EL.search_bar_text_box.value);
     });
 
     if (searchParams.has("search")) {
@@ -286,13 +331,13 @@ function setSelectedMod(selectedModId) {
                 showToaster(
                     "Error.",
                     `Could not find the mod list element to highlight for ${mod_info.name}.`,
-                    ICON_ERROR_PATH
+                    { img: ICON_ERROR_PATH }
                 );
             }
         }, 50);
     }
 
-    localStorage.setItem("last_mod_selected", selectedModId)
+    localStorage.setItem(LocalStorageKeys.last_mod_selected, selectedModId)
     if (oldID != selectedModId)
         updateSearch();
 }
@@ -327,9 +372,9 @@ function updateModSearch(filter = '') {
 
         // text
         const textDiv = make('');
-        const nameDiv = make(firstNonEmpty(mod.name, mod.id));
+        const titleDiv = make(firstNonEmpty(mod.name, mod.id));
         const authorDiv = make(mod.author);
-        textDiv.append(nameDiv, authorDiv);
+        textDiv.append(titleDiv, authorDiv);
         li.appendChild(textDiv);
 
         ul.appendChild(li);
@@ -341,11 +386,72 @@ function updateModSearch(filter = '') {
 
 //#region search list
 
+/** @type {Categories} */
+let search_category = Categories.None;
+
+/** @param {Categories} [cat] */
+function changeSearchCategory(cat) {
+    search_category = cat;
+    localStorage.setItem(LocalStorageKeys.last_selected_category, cat);
+}
+
 // @ts-ignore
 function updateSearch(filter = '') {
     const ul = EL.search_bar_list_ul;
     ul.innerHTML = '';
 
+
+    createListItem(ul, {
+        onClick: () => {
+            changeSearchCategory(Categories.None);
+            updateSearch();
+        },
+        title: "...",
+        img: ICON_CODEX_ARROW_UP
+    })
+    switch (search_category) {
+        case Categories.None  : renderRoot(ul);break;
+        case Categories.Ships : renderShipList(ul, filter);break;
+        case Categories.Stations : renderStationList(ul, filter);break;
+
+        default : break;
+    }
+}
+
+function renderRoot(/** @type HTMLElement */ul) {
+    ul.innerHTML = ""; // kind of a nuclear option, but it works
+    let shipsCat = Categories.Ships;
+    createListItem(ul, {
+        onClick: () => {
+            changeSearchCategory(shipsCat);
+            updateSearch();
+        },
+        title: shipsCat,
+        img: CODEX_ICON_SHIPS
+    })
+
+    let stationsCat = Categories.Stations;
+    createListItem(ul, {
+        onClick: () => {
+            changeSearchCategory(stationsCat);
+            updateSearch();
+        },
+        title: stationsCat,
+        img: CODEX_ICON_STATIONS
+    })
+
+    let weaponsCat = Categories.Weapons;
+    createListItem(ul, {
+        onClick: () => {
+            changeSearchCategory(weaponsCat);
+            updateSearch();
+        },
+        title: weaponsCat,
+        img: CODEX_ICON_WEAPONS
+    })
+}
+
+function renderShipList(ul, filter = '') {
     const candidates = [];
 
     //#region add ships to the list
@@ -354,6 +460,8 @@ function updateSearch(filter = '') {
         if (ship.hullSize === "FIGHTER") continue;
         const csv = globalSources.ship_data.find(s => s.id === ship.hullId);
         if (!csv || csv.hints.includes("HIDE_IN_CODEX")) continue;
+        if (!csv || csv.hints.includes("STATION")) continue;
+        if (!csv || csv.name.startsWith("#")) continue;
         if (filter && substringLevenshtein(csv.name, filter) > MAX_DISTANCE) continue;
 
         candidates.push({ type: 'ship', ship, csv });
@@ -368,6 +476,8 @@ function updateSearch(filter = '') {
         if (!base || base.hullSize === "FIGHTER") continue;
         const csv = globalSources.ship_data.find(s => s.id === skin.baseHullId);
         if (!csv || csv.hints.includes("HIDE_IN_CODEX")) continue;
+        if (!csv || csv.hints.includes("STATION")) continue;
+        if (!csv || csv.name.startsWith("#")) continue;
         if (filter && substringLevenshtein(skin.hullName, filter) > MAX_DISTANCE) continue;
 
         candidates.push({ type: 'skin', skin, base, csv });
@@ -376,57 +486,160 @@ function updateSearch(filter = '') {
 
     //#region sort
     candidates.sort((a, b) => {
-        const nameA = firstNonEmpty(a.csv.name, a.skin?.hullName, a.base?.hullName);
-        const nameB = firstNonEmpty(b.csv.name, b.skin?.hullName, b.base?.hullName);
+        const nameA = firstNonEmpty(a.csv.name, a.skin?.hullName, a.base?.hullName, a.ship?.hullName);
+        const nameB = firstNonEmpty(b.csv.name, b.skin?.hullName, b.base?.hullName, a.ship?.hullName);
         return nameA.localeCompare(nameB);
     });
     //#endregion
 
     //#region render
     for (const c of candidates) {
-        const li = document.createElement('li');
-        const hullId = c.type === 'skin' ? c.skin?.skinHullId : c.ship?.hullId;
-        if (localStorage.getItem("last_searched_item") == hullId) {
-            li.classList.add("element-highlight")
+        const li = createListItem(ul,
+            {
+                title: firstNonEmpty(c.skin?.hullName, c.ship?.hullName),
+                desc: c.csv.designation,
+                id: c.type === 'skin' ? c.skin?.skinHullId : c.ship?.hullId,
+            })
 
-            const simplebar = SimpleBar.instances.get(EL.search_list_container);
-            const scrollElement = simplebar.getScrollElement();
-
-            setTimeout(() => {
-                scrollElement.scrollTo({
-                    top: li.offsetTop - 56,
-                    behavior: 'smooth'
-                });
-            }, 50);
-
-        }
-        li.addEventListener('click', () => {
-            updateCodex(hullId);
-            ul.querySelectorAll(".element-highlight")
-                .forEach(el => (el.classList.contains("element-highlight")) ? el.classList.remove("element-highlight") : "")
-            li.classList.add("element-highlight")
-        });
-
-        // image
-        const imgDiv = make('');
-        const img = document.createElement('img');
-        img.src = getShipSkinImagePath(c.ship ?? c.base, c.skin)
-        img.onerror = function () {
-            img.src = getShipOwnedSkinImagePath(c.ship ?? c.base, c.skin)
-        }
-        imgDiv.appendChild(img);
-        li.appendChild(imgDiv);
-
-        // text
-        const textDiv = make('');
-        const nameDiv = make(firstNonEmpty(c.skin?.hullName, c.ship?.hullName));
-        const desigDiv = make(c.csv.designation);
-        textDiv.append(nameDiv, desigDiv);
-        li.appendChild(textDiv);
-
-        ul.appendChild(li);
+        updateImgShipSource(li.img, c);
     }
     //#endregion
+}
+
+function renderStationList(ul, filter = ''){
+    const candidates = [];
+
+    //#region add ships to the list
+    for (const ship of globalSources.ships) {
+        if (ship.owner != currentSelectedModId) continue;
+        if (ship.hullSize === "FIGHTER") continue;
+        const csv = globalSources.ship_data.find(s => s.id === ship.hullId);
+        if (!csv || !csv.hints.includes("STATION")) continue;
+        if (!csv || csv.hints.includes("HIDE_IN_CODEX")) continue;
+        if (!csv || csv.name.startsWith("#")) continue;
+        if (filter && substringLevenshtein(csv.name, filter) > MAX_DISTANCE) continue;
+
+        candidates.push({ type: 'ship', ship, csv });
+    }
+    //#endregion
+
+    //#region add skins to the list
+    for (const skin of globalSources.skins) {
+        if (skin.owner != currentSelectedModId) continue;
+        if (skin.restoreToBaseHull) continue;
+        const base = globalSources.ships.find(s => s.hullId === skin.baseHullId);
+        if (!base || base.hullSize === "FIGHTER") continue;
+        const csv = globalSources.ship_data.find(s => s.id === skin.baseHullId);
+        if (!csv || !csv.hints.includes("STATION")) continue;
+        if (!csv || csv.hints.includes("HIDE_IN_CODEX")) continue;
+        if (!csv || csv.name.startsWith("#")) continue;
+        if (filter && substringLevenshtein(skin.hullName, filter) > MAX_DISTANCE) continue;
+
+        candidates.push({ type: 'skin', skin, base, csv });
+    }
+    //#endregion
+
+    //#region sort
+    candidates.sort((a, b) => {
+        const nameA = firstNonEmpty(a.csv.name, a.skin?.hullName, a.base?.hullName, a.ship?.hullName);
+        const nameB = firstNonEmpty(b.csv.name, b.skin?.hullName, b.base?.hullName, a.ship?.hullName);
+        return nameA.localeCompare(nameB);
+    });
+    //#endregion
+
+    //#region render
+    for (const c of candidates) {
+        const li = createListItem(ul,
+            {
+                title: firstNonEmpty(c.skin?.hullName, c.ship?.hullName),
+                desc: c.csv.designation,
+                id: c.type === 'skin' ? c.skin?.skinHullId : c.ship?.hullId,
+            })
+
+        updateImgShipSource(li.img, c);
+    }
+    //#endregion
+
+}
+
+/**
+ * @param {HTMLElement} [ul] 
+ * @param {{
+ * title?: string;
+ * desc?: string;
+ * img?: string;
+ * id?: string;
+ * onClick?: () => void;
+ * }} [args={}] 
+ * @returns {{
+ * li    : HTMLElement,
+ * img   : HTMLImageElement,
+ * title : HTMLElement,
+ * desc  : HTMLElement,
+ * }}
+ */
+function createListItem(ul, args = {}) {
+    args = {
+        ...{
+            title: "",
+            desc: "",
+            id: "",
+            onClick: () => {
+                updateCodex(args.id);
+                ul.querySelectorAll(".element-highlight")
+                    .forEach(el => (el.classList.contains("element-highlight")) ? el.classList.remove("element-highlight") : "")
+                li.classList.add("element-highlight")
+            }
+        }
+        , ...args
+    };
+
+
+    const li = document.createElement('li');
+    // const hullId = c.type === 'skin' ? c.skin?.skinHullId : c.ship?.hullId;
+    if (args.id && localStorage.getItem(LocalStorageKeys.last_searched_item) == args.id) {
+        li.classList.add("element-highlight")
+
+        const simplebar = SimpleBar.instances.get(EL.search_list_container);
+        const scrollElement = simplebar.getScrollElement();
+
+        setTimeout(() => {
+            scrollElement.scrollTo({
+                top: li.offsetTop - 56,
+                behavior: 'smooth'
+            });
+        }, 50);
+
+    }
+
+    li.addEventListener('click', args.onClick);
+
+    // image
+    const imgDiv = make('');
+    const img = document.createElement('img');
+    if (args.img)
+        img.src = args.img;
+    // updateImgShipSource(img, c)
+    imgDiv.appendChild(img);
+    li.appendChild(imgDiv);
+
+    // text
+    const textDiv = make('');
+    // const titleDiv = make(firstNonEmpty(c.skin?.hullName, c.ship?.hullName));
+    const titleDiv = make(args.title);
+    // const descDiv = make(c.csv.designation);
+    const descDiv = make(args.desc);
+    textDiv.append(titleDiv, descDiv);
+    li.appendChild(textDiv);
+
+    ul.appendChild(li);
+
+    return {
+        ["li"]: li,
+        ["img"]: img,
+        ["title"]: titleDiv,
+        ["desc"]: descDiv
+    }
 }
 
 //#endregion
@@ -434,7 +647,7 @@ function updateSearch(filter = '') {
 //#region populating codex
 
 function updateCodex(selectedHull, log = true) {
-    localStorage.setItem("last_searched_item", selectedHull);
+    localStorage.setItem(LocalStorageKeys.last_searched_item, selectedHull);
 
     //#region data collection
     /** @type {Skin} */
@@ -534,7 +747,7 @@ function updateCodex(selectedHull, log = true) {
     //#endregion
 
     //#region render
-    setHeader(shipJson, csv, skin);
+    const headerRet = setHeader(shipJson, csv, skin);
     setImage(shipJson, skin);
     setCombatStats(csv, shipJson, skin);
     setLogistics(csv, sensorDict);
@@ -553,6 +766,8 @@ function updateCodex(selectedHull, log = true) {
 
     /** @type {ship_data} */
     current_ship = {
+        hullName: headerRet.name,
+        hullHeader: headerRet.header,
         selectedHull: selectedHull,
         // @ts-ignore
         image: EL.ship_image.src,
@@ -586,16 +801,13 @@ window.updateCodex = updateCodex;
 function setHeader(ship, csv, skin) {
     const name = firstNonEmpty(skin?.hullName, csv.name);
     EL.ship_name_header.textContent = `${name}-class ${firstNonEmpty(skin?.hullDesignation, csv?.designation)}`;
+    return { name: name, header: EL.ship_name_header.textContent };
 }
 
 function setImage(ship, skin) {
     const img = EL.ship_image
-    // @ts-ignore // annoyence
-    img.src = getShipSkinImagePath(ship, skin)
-    img.onerror = function () {
-        // @ts-ignore
-        img.src = getShipOwnedSkinImagePath(ship, skin)
-    }
+    // @ts-ignore
+    updateImgShipSource(img, { ["ship"]: ship, ["skin"]: skin })
 }
 
 function setCombatStats(csv, ship, skin) {
@@ -854,7 +1066,21 @@ function handleNoLowerContent() {
 
 //#region toaster
 
-function showToaster(title, text, img = "") {
+
+/**
+ * @param {string} title
+ * @param {string} text
+ * @param {{ img?: string; duration?: number }} [options]
+ * @returns {{
+ * removeToaster : () => void,
+ * setTitle      : (newTitle: string) => void,
+ * setText       : (newText: string) => void,
+ * setImg        : (newImage: string) => void,
+ * toaster       : HTMLElement,
+ * }}
+ */
+function showToaster(title, text, options = {}) {
+    options = { ...{ img: "", duration: 5000, }, ...options };
     const toaster = document.createElement("div");
     toaster.classList.add("toaster")
     toaster.classList.add("d-flex")
@@ -888,17 +1114,40 @@ function showToaster(title, text, img = "") {
     toaster_text.innerText = text;
 
     // @ts-ignore
-    toaster_image.src = img;
+    toaster_image.src = options.img;
 
     toaster.style.right = "-274px";
+
     setTimeout(() => {
         toaster.style.right = "0px";
     }, 25);
 
-    setTimeout(() => {
+    setTimeout(() => removeToaster(), options.duration);
+
+    function removeToaster() {
         toaster.style.right = "-274px";
         setTimeout(() => toaster.remove(), 1000)
-    }, 5000);
+    }
+
+    function setTitle(t) {
+        toaster_title.innerText = t;
+    }
+
+    function setText(t) {
+        toaster_text.innerText = t;
+    }
+
+    function setImg(t) {
+        toaster_image.src = t;
+    }
+
+    return {
+        ["setTitle"]: setTitle,
+        ["setText"]: setText,
+        ["setImg"]: setImg,
+        ["removeToaster"]: removeToaster,
+        ["toaster"]: toaster,
+    };
 }
 
 // @ts-ignore
@@ -908,7 +1157,7 @@ window.showToaster = showToaster;
 
 //#region tests
 
-function runUpdateCodexTest() {
+async function runUpdateCodexTest() {
     const candidates = [];
 
     for (const ship of globalSources.ships) {
@@ -928,15 +1177,38 @@ function runUpdateCodexTest() {
         candidates.push({ type: 'skin', skin, base, csv });
     }
 
-    candidates.forEach(
-        s => {
-            try {
-                updateCodex(firstNonEmpty(s.skin?.skinHullId, s.csv.id), false)
-            } catch (err) {
-                console.error(err)
-            }
+    const toaster = showToaster("Running Checks...", "", { img: ICON_INFO_PATH, duration: 600_000 });
+
+    let errorCount = 0;
+
+    for (let i = 0; i < candidates.length; i++) {
+        const s = candidates[i];
+        try {
+            const codex_ship = updateCodex(firstNonEmpty(s.skin?.skinHullId, s.csv.id), false)
+            updateImgShipSource(toaster.toaster.querySelector("img"), {
+                ["base"]: codex_ship.shipJson,
+                ["ship"]: codex_ship.shipJson,
+                ["skin"]: codex_ship.skin,
+            })
+            toaster.setText(
+                `[${i + 1}/${candidates.length + 1}]\n` +
+                codex_ship.hullHeader
+            )
+            await new Promise(resolve => setTimeout(resolve, 2))
+        } catch (err) {
+            console.warn("Error for: " + firstNonEmpty(s.skin?.skinHullId, s.csv.id))
+            console.error(err)
+            errorCount++;
         }
-    )
+    }
+
+    toaster.removeToaster();
+    if (errorCount > 0) {
+        showToaster("Found Errors", "Check log for more information.", { img: ICON_ERROR_PATH })
+    } else {
+        showToaster("No Error Found", "", { img: ICON_INFO_PATH })
+    }
+
 }
 
 //#endregion

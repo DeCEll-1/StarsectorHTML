@@ -1,0 +1,40 @@
+    // @ts-nocheck
+    // so the reason why this files extension is _ is that so js intellisense doesnt detect it, but the browser still runs the code here
+
+const Categories = {
+    None     : "None",
+    Ships    : "Ships",
+    Stations : "Stations",
+    Weapons  : "Weapons",
+};
+
+const Mount = {
+    Hardpoint : "HARDPOINT",
+    Hidden    : "HIDDEN",
+    Turret    : "TURRET",
+};
+
+const WeaponTypes = {
+    Ballistic  : "BALLISTIC",
+    Energy     : "ENERGY",
+    Missile    : "MISSILE",
+    Hybrid     : "HYBRID",
+    Composite  : "COMPOSITE",
+    Synergy    : "SYNERGY",
+    Universal  : "UNIVERSAL",
+    Decorative : "DECORATIVE",
+};
+
+const Size = {
+    Large  : "LARGE",
+    Medium : "MEDIUM",
+    Small  : "SMALL",
+};
+
+const LocalStorageKeys = {
+    global_sources         : "global_sources",
+    last_item_searched     : "last_item_searched",
+    last_searched_item     : "last_searched_item",
+    last_selected_category : "last_selected_category",
+    last_mod_selected      : "last_mod_selected",
+};

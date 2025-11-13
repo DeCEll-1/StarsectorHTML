@@ -469,6 +469,8 @@ input[type=text]:focus::placeholder {
     display: flex;
     transition: background-color 0.5s ease;
     width: 99%;
+    cursor: default;
+    user-select: none;
     /* border-radius: 9px; */
 }
 
@@ -558,12 +560,16 @@ input[type=text]:focus::placeholder {
     transition: all 0.5s;
     background-color: var(--stat-black);
     z-index: 1024;
+    min-height: 80px;
 }
 
 .toaster-image {
-    max-width: 64px;
-    max-height: 64px;
-    margin: 0px 6px;
+    width: 80px ;
+    height: 80px;
+    min-width: 80px;
+    min-height: 80px;
+    object-fit: contain;
+    margin: auto;
 }
 
 .toaster-text {

@@ -16,6 +16,9 @@ $whitelist = @(
     "*\graphics\*hullmods\*",
     "*\graphics\*weapons\*",
     
+    # need for icons
+    "*\graphics\*codex\*",
+    
     # file extensions
     "*.skin",
     "*.ship",

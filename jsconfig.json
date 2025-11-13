@@ -15,5 +15,5 @@
         "noImplicitOverride": true,
     },
     "include": [ "*.js", "**/*.js", "typedefs.d.ts", "**/*.d.ts" ],
-    "exclude": [ "node_modules" ]
+    "exclude": [ "node_modules", "*enums.js" ]
 }
