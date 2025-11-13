@@ -2,48 +2,8 @@
 
 // get this file from: https://www.npmjs.com/package/simplebar?activeTab=code
 /// <reference path="./Resources/libs/SimpleBar/simplebar.js" />
+/// <reference path="./consts.js" />
 
-// @ts-ignore
-const REPO_NAME = "StarsectorHTML";
-// @ts-ignore
-const BASE_PATH = location.hostname === "127.0.0.1" ? "." : `/${REPO_NAME}`;
-const CODEX_ICON_FOLDER_PATH = `${BASE_PATH}/Resources/Images/Codex`
-const { } = "------------CODEX------------";
-const CODEX_ICON_ABILITIES = `${CODEX_ICON_FOLDER_PATH}/abilities.png`
-const CODEX_ICON_COMMODITIES = `${CODEX_ICON_FOLDER_PATH}/commodities.png`
-const CODEX_ICON_CUSTOM = `${CODEX_ICON_FOLDER_PATH}/custom.png`
-const CODEX_ICON_FIGHTERS = `${CODEX_ICON_FOLDER_PATH}/fighters.png`
-const CODEX_ICON_GALLERY = `${CODEX_ICON_FOLDER_PATH}/gallery.png`
-const CODEX_ICON_GAME_MECHANICS = `${CODEX_ICON_FOLDER_PATH}/game_mechanics.png`
-const CODEX_ICON_HULLMODS = `${CODEX_ICON_FOLDER_PATH}/hullmods.png`
-const CODEX_ICON_INDUSTRIES = `${CODEX_ICON_FOLDER_PATH}/industries.png`
-const CODEX_ICON_MANUAL_ARMOR = `${CODEX_ICON_FOLDER_PATH}/manual_armor.png`
-const CODEX_ICON_MANUAL_BALLISTIC_WEAPONS = `${CODEX_ICON_FOLDER_PATH}/manual_ballistic_weapons.png`
-const CODEX_ICON_MANUAL_COMBAT = `${CODEX_ICON_FOLDER_PATH}/manual_combat.png`
-const CODEX_ICON_MANUAL_ENERGY_WEAPONS = `${CODEX_ICON_FOLDER_PATH}/manual_energy_weapons.png`
-const CODEX_ICON_MANUAL_FLUX = `${CODEX_ICON_FOLDER_PATH}/manual_flux.png`
-const CODEX_ICON_MANUAL_MISSILES = `${CODEX_ICON_FOLDER_PATH}/manual_missiles.png`
-const CODEX_ICON_MANUAL_OTHER = `${CODEX_ICON_FOLDER_PATH}/manual_other.png`
-const CODEX_ICON_MANUAL_SHIELDS = `${CODEX_ICON_FOLDER_PATH}/manual_shields.png`
-const CODEX_ICON_MANUAL_TRIPAD = `${CODEX_ICON_FOLDER_PATH}/manual_tripad.png`
-const CODEX_ICON_MANUAL_UI = `${CODEX_ICON_FOLDER_PATH}/manual_ui.png`
-const CODEX_ICON_MANUAL_UI2 = `${CODEX_ICON_FOLDER_PATH}/manual_ui2.png`
-const CODEX_ICON_MANUAL_VENTING = `${CODEX_ICON_FOLDER_PATH}/manual_venting.png`
-const CODEX_ICON_MARKET_CONDITIONS = `${CODEX_ICON_FOLDER_PATH}/market_conditions.png`
-const CODEX_ICON_SHIPS = `${CODEX_ICON_FOLDER_PATH}/ships.png`
-const CODEX_ICON_SHIP_SYSTEMS = `${CODEX_ICON_FOLDER_PATH}/ship_systems.png`
-const CODEX_ICON_SKILLS = `${CODEX_ICON_FOLDER_PATH}/skills.png`
-const CODEX_ICON_SPACERS_MANUAL = `${CODEX_ICON_FOLDER_PATH}/spacers_manual.png`
-const CODEX_ICON_SPECIAL_ITEMS = `${CODEX_ICON_FOLDER_PATH}/special_items.png`
-const CODEX_ICON_STARS_PLANETS = `${CODEX_ICON_FOLDER_PATH}/stars_planets.png`
-const CODEX_ICON_STATIONS = `${CODEX_ICON_FOLDER_PATH}/stations.png`
-const CODEX_ICON_WEAPONS = `${CODEX_ICON_FOLDER_PATH}/weapons.png`
-const { } = "------------ICONS------------";
-const ICON_FOLDER_PATH = `${BASE_PATH}/Resources/Images/Icons`
-const ICON_ERROR_PATH = `${ICON_FOLDER_PATH}/alert.png`
-const ICON_DOWNLOAD_PATH = `${ICON_FOLDER_PATH}/download.png`
-const ICON_INFO_PATH = `${ICON_FOLDER_PATH}/info.png`
-const ICON_CODEX_ARROW_UP = `${ICON_FOLDER_PATH}/arrow_up.png`
 
 // @ts-ignore
 let globalSources;
@@ -410,11 +370,12 @@ function updateSearch(filter = '') {
         img: ICON_CODEX_ARROW_UP
     })
     switch (search_category) {
-        case Categories.None  : renderRoot(ul);break;
-        case Categories.Ships : renderShipList(ul, filter);break;
-        case Categories.Stations : renderStationList(ul, filter);break;
+        case Categories.None     : renderRoot(ul); break;
+        case Categories.Ships    : renderShipList(ul, filter); break;
+        case Categories.Stations : renderStationList(ul, filter); break;
 
-        default : break;
+        default:
+            break;
     }
 }
 
@@ -451,35 +412,48 @@ function renderRoot(/** @type HTMLElement */ul) {
     })
 }
 
+/** @param {{ ship?: ShipJSON; skin?: Skin; modId?: string; filter?: string; }} [args]*/
+function isShipLegit(args = {}) {
+    args = { ...{ modId: "starsector-core", filter: "" }, ...args };
+    const owner = args.skin?.owner ?? args.ship?.owner;
+    if (owner !== args.modId) return false;
+    if (args.ship.hullSize === "FIGHTER") return false;
+    if (args.skin?.restoreToBaseHull) return false;
+    const csvId = args.skin ? args.skin.baseHullId : args.ship.hullId;
+    const csv = globalSources.ship_data.find(s => s.id === csvId);
+    if (!csv) return false;
+    if (csv.hints.includes("HIDE_IN_CODEX")) return false;
+    if (csv.hints.includes("STATION")) return false;
+    if (csv.name.startsWith("#")) return false;
+    if (args.filter) {
+        const nameToSearch = args.skin ? args.skin.hullName : csv.name;
+        if (substringLevenshtein(nameToSearch, args.filter) > MAX_DISTANCE) {
+            return false;
+        }
+    }
+    return true;
+}
+
 function renderShipList(ul, filter = '') {
     const candidates = [];
 
     //#region add ships to the list
     for (const ship of globalSources.ships) {
-        if (ship.owner != currentSelectedModId) continue;
-        if (ship.hullSize === "FIGHTER") continue;
-        const csv = globalSources.ship_data.find(s => s.id === ship.hullId);
-        if (!csv || csv.hints.includes("HIDE_IN_CODEX")) continue;
-        if (!csv || csv.hints.includes("STATION")) continue;
-        if (!csv || csv.name.startsWith("#")) continue;
-        if (filter && substringLevenshtein(csv.name, filter) > MAX_DISTANCE) continue;
+        if (!isShipLegit({ ship: ship, modId: currentSelectedModId, filter: filter })) continue;
 
+        const csv = globalSources.ship_data.find(s => s.id === ship.hullId);
         candidates.push({ type: 'ship', ship, csv });
     }
     //#endregion
 
     //#region add skins to the list
     for (const skin of globalSources.skins) {
-        if (skin.owner != currentSelectedModId) continue;
-        if (skin.restoreToBaseHull) continue;
         const base = globalSources.ships.find(s => s.hullId === skin.baseHullId);
-        if (!base || base.hullSize === "FIGHTER") continue;
-        const csv = globalSources.ship_data.find(s => s.id === skin.baseHullId);
-        if (!csv || csv.hints.includes("HIDE_IN_CODEX")) continue;
-        if (!csv || csv.hints.includes("STATION")) continue;
-        if (!csv || csv.name.startsWith("#")) continue;
-        if (filter && substringLevenshtein(skin.hullName, filter) > MAX_DISTANCE) continue;
+        if (!base) continue;                         // base hull missing → skip
 
+        if (!isShipLegit({ ship: base, skin, modId: currentSelectedModId, filter })) continue;
+
+        const csv = globalSources.ship_data.find(s => s.id === skin.baseHullId);
         candidates.push({ type: 'skin', skin, base, csv });
     }
     //#endregion
@@ -506,35 +480,48 @@ function renderShipList(ul, filter = '') {
     //#endregion
 }
 
-function renderStationList(ul, filter = ''){
+/** @param {{ ship?: ShipJSON; skin?: Skin; modId?: string; filter?: string; }} [args]*/
+function isStationLegit(args = {}) {
+    args = { ...{ modId: "starsector-core", filter: "" }, ...args };
+    const owner = args.skin?.owner ?? args.ship?.owner;
+    if (owner !== args.modId) return false;
+    if (args.ship.hullSize === "FIGHTER") return false;
+    if (args.skin?.restoreToBaseHull) return false;
+    const csvId = args.skin ? args.skin.baseHullId : args.ship.hullId;
+    const csv = globalSources.ship_data.find(s => s.id === csvId);
+    if (!csv) return false;
+    if (csv.hints.includes("HIDE_IN_CODEX")) return false;
+    if (!csv.hints.includes("STATION")) return false;
+    if (csv.name.startsWith("#")) return false;
+    if (args.filter) {
+        const nameToSearch = args.skin ? args.skin.hullName : csv.name;
+        if (substringLevenshtein(nameToSearch, args.filter) > MAX_DISTANCE) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function renderStationList(ul, filter = '') {
     const candidates = [];
 
     //#region add ships to the list
     for (const ship of globalSources.ships) {
-        if (ship.owner != currentSelectedModId) continue;
-        if (ship.hullSize === "FIGHTER") continue;
-        const csv = globalSources.ship_data.find(s => s.id === ship.hullId);
-        if (!csv || !csv.hints.includes("STATION")) continue;
-        if (!csv || csv.hints.includes("HIDE_IN_CODEX")) continue;
-        if (!csv || csv.name.startsWith("#")) continue;
-        if (filter && substringLevenshtein(csv.name, filter) > MAX_DISTANCE) continue;
+        if (!isStationLegit({ ship: ship, modId: currentSelectedModId, filter: filter })) continue;
 
+        const csv = globalSources.ship_data.find(s => s.id === ship.hullId);
         candidates.push({ type: 'ship', ship, csv });
     }
     //#endregion
 
     //#region add skins to the list
     for (const skin of globalSources.skins) {
-        if (skin.owner != currentSelectedModId) continue;
-        if (skin.restoreToBaseHull) continue;
         const base = globalSources.ships.find(s => s.hullId === skin.baseHullId);
-        if (!base || base.hullSize === "FIGHTER") continue;
-        const csv = globalSources.ship_data.find(s => s.id === skin.baseHullId);
-        if (!csv || !csv.hints.includes("STATION")) continue;
-        if (!csv || csv.hints.includes("HIDE_IN_CODEX")) continue;
-        if (!csv || csv.name.startsWith("#")) continue;
-        if (filter && substringLevenshtein(skin.hullName, filter) > MAX_DISTANCE) continue;
+        if (!base) continue;                         // base hull missing → skip
 
+        if (!isStationLegit({ ship: base, skin, modId: currentSelectedModId, filter })) continue;
+
+        const csv = globalSources.ship_data.find(s => s.id === skin.baseHullId);
         candidates.push({ type: 'skin', skin, base, csv });
     }
     //#endregion
@@ -761,6 +748,18 @@ function updateCodex(selectedHull, log = true) {
     setDescription(description, skin);
     setPrice(csv, skin);
     //#endregion
+
+    if (isShipLegit({ ship: shipJson, skin, modId: currentSelectedModId, filter: "" })) {
+        if (search_category != Categories.Ships) {
+            changeSearchCategory(Categories.Ships);
+            updateSearch();
+        }
+    } else {
+        if (search_category != Categories.Stations) {
+            changeSearchCategory(Categories.Stations);
+            updateSearch();
+        }
+    }
 
     //#region return
 
