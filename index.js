@@ -5,7 +5,7 @@
 /// <reference path="./consts.js" />
 
 
-// @ts-ignore
+/** @type {Global} */
 let globalSources;
 let currentSelectedModId
 let mod_info;
@@ -148,7 +148,7 @@ function runMain() {
 async function checkForNewSources() {
     try {
         let updateTimeURL = "https://raw.githubusercontent.com/DeCEll-1/StarsectorHTML/refs/heads/main/Resources/GameSources/mods/creation_date.txt";
-        if (location.hostname == "127.0.0.1"){
+        if (location.hostname == "127.0.0.1") {
             updateTimeURL = `${BASE_PATH}/Resources/GameSources/mods/creation_date.txt`
         }
 
@@ -554,38 +554,16 @@ function renderStationList(ul, filter = '') {
 
 function renderWeaponList() {
     /* 
-    refs
+    was gonna use unicode characters to render the background for weapons, 
+    but thats too complicated so i just made some svgs
+    see "./mounts.css.txt" and "./Resources/SVGs/WeaponSlots/SVG/*.svg"
+    */
 
-    https : //www.w3.org/TR/xml-entity-names/025.html
-    https : //unicode.org/charts/PDF/U1F780.pdf
+    const candidates = [];
+
     
 
-    small : --------- : ---------------------------------- : 
-    |---- : balistic  : □                                  : 
-    |---- : missile   : ◇                                  : 
-    |---- : energy    : ○                                  : 
-    |---- : hybrid    : 1F7D7 🟗 CIRCLED SQUARE            : 
-    |---- : composite : ⛋                                  : 
-    |---- : synergy   : 1F7D7 🟗 CIRCLED SQUARE ROTATED 90 : 
-    |---- : universal : 1F7D7 🟗 CIRCLED SQUARE + ◇        : 
-    med   : --------- : ---------------------------------- : 
-    |---- : balistic  : 2x□; one dimmer smaller one        : 
-    |---- : missile   : 2x◇; one dimmer smaller one        : 
-    |---- : energy    : 2x○; one dimmer smaller one        : 
-    |---- : hybrid    : 1F7D7 🟗 CIRCLED SQUARE            : 
-    |---- : composite : ⛋                                  : 
-    |---- : synergy   : 1F7D7 🟗 CIRCLED SQUARE ROTATED 90 : 
-    |---- : universal : 1F7D7 🟗 CIRCLED SQUARE + ◇        : 
-    large : --------- : ---------------------------------- : 
-    |---- : balistic  : 2x□; one dimmer smaller one        : 
-    |---- : missile   : 2x◇; one dimmer smaller one        : 
-    |---- : energy    : 2x○; one dimmer smaller one        : 
-    |---- : hybrid    : 1F7D7 🟗 CIRCLED SQUARE            : 
-    |---- : composite : ⛋                                  : 
-    |---- : synergy   : 1F7D7 🟗 CIRCLED SQUARE ROTATED 90 : 
-    |---- : universal : 1F7D7 🟗 CIRCLED SQUARE + ◇        : 
 
-    */
 }
 
 /**
@@ -676,27 +654,20 @@ function updateCodex(selectedHull, log = true) {
     localStorage.setItem(LocalStorageKeys.last_searched_item, selectedHull);
 
     //#region data collection
-    /** @type {Skin} */
     const skin = globalSources.skins.find(s => s.skinHullId === selectedHull);
     const baseHullId = skin ? skin.baseHullId : selectedHull;
 
-    /** @type {ShipJSON} */
     const shipJson = globalSources.ships.find(s => s.hullId === baseHullId);
     setSelectedMod(firstNonEmpty(skin?.owner, shipJson.owner))
 
-    /** @type {Description} */
     const description = globalSources.descriptions.find(d => d.id === firstNonEmpty(skin?.descriptionId, baseHullId) && d.type === "SHIP");
-    /** @type {CSV} */
     let csv = globalSources.ship_data.find(s => s.id === baseHullId);
 
     const builtInMods = Object.values(shipJson.builtInMods ?? {}).concat(skin?.builtInMods ?? []).filter(s => !(skin?.removeBuiltInMods ?? []).includes(s))
-    /** @type {Hullmod[]} */
     const hullmods = globalSources.hull_mods.filter(m => builtInMods.includes(m.id));
 
-    // @ts-ignore
     const builtInWeapons = Object.values({ ...(shipJson.builtInWeapons ?? {}), ...(skin?.builtInWeapons ?? {}) }).filter(s => !(skin?.removeBuiltInWeapons ?? []).includes(s))
 
-    /** @type {Weapon[]} */
     const weapons = globalSources.weapon_data.filter(w => {
         const tags = w.tags.trim().toLowerCase().split(",").map(s => s.trim());
 
@@ -970,7 +941,7 @@ function renderBuiltInArmaments(
     shipJson,
     /** @type {Skin} */
     skin,
-    /** @type {Weapon[]} */
+    /** @type {WeaponCSV[]} */
     weapons,
     /** @type {Wing[]} */
     wings
