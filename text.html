@@ -1,0 +1,38 @@
+<style>
+    .svg-overlay {
+        position: relative;
+        background-size: cover;
+        background-position: center;
+        overflow: hidden;
+        width: 64px;
+        height: 64px;
+
+        align-content: center;
+    }
+
+    .svg-overlay img {
+        margin: auto;
+        display: block;
+        transform: rotateZ(45deg);
+    }
+
+    /* ::before draws the SVG */
+    .svg-overlay::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-size: 100%;
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    .K_S::before {background: url('Resources/SVGs/WeaponSlots/SVG/K_S.svg') center/contain no-repeat;    }
+
+    body {
+        background-color: black;
+    }
+</style>
+
+<div class="svg-overlay S_L">
+    <img src="./Resources/GameSources/mods/starsector-core/graphics/weapons/rift_torpedo_turret.png">
+</div>

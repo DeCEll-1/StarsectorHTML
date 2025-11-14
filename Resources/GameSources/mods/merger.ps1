@@ -194,6 +194,9 @@ foreach ($mod in $mods) {
 
     $skinFiles = @()
     $skinFiles = Get-ChildItem -Path $mod -Filter *.skin -Recurse
+    
+    $weaponFiles = @()
+    $weaponFiles = Get-ChildItem -Path $mod -Filter *.wpn -Recurse
 
     
     $mod_info_object = ((Get-Content -Path ($mod.FullName + "\mod_info.json") -Raw) | Remove-HashCommentsFromJson | Remove-FloatSuffix | ConvertFrom-Json)
@@ -221,6 +224,9 @@ foreach ($mod in $mods) {
     #region csvs
     foreach ($file in $csvFiles) {
         $file = [System.IO.DirectoryInfo]($mod.FullName + $file)
+        if (!(Test-Path -Path $file -PathType Leaf)) {
+            continue
+        }
         Write-Host "Processing CSV $($file.FullName)..."
         try {
             $data = Import-Csv -Path $file.FullName
@@ -269,21 +275,11 @@ foreach ($mod in $mods) {
             # $fixup_json = [regex]::Replace($clean, '(?<!")(?<=[:\[\s,])([A-Za-z_][A-Za-z0-9_]*)(?=[\s,\]\}])(?!")', '"$1"')
             $fixup_json_2 = [regex]::Replace($clean, '(".*?":)\s*([A-Za-z_][A-Za-z0-9_]*)(?=[\s,\]}])', '$1"$2"')
             $fixup_json_3 = [regex]::Replace($fixup_json_2, ',\s*(?=[}\]])', '')
-            $fixup_json_4 = [regex]::Replace($fixup_json_3, '(?m)^(?!.*\baddHints\b).*$\n?|"(?:\\.|[^"\\])*"(?=\s*:)|(\b(?:\w+(?:\.\w+)*|\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\b)', { 
+            
+            $fixup_json_4 = [regex]::Replace($fixup_json_3, '(?![,\[])(?!\s*")([A-Z_]+)(?=[,\]])', { 
                     param($m)
                     if ($m.Groups[1].Success) {
-                        '"' + $m.Value + '"' 
-                    } else {
-                        $m.Value
-                    }
-
-                }
-            )
-
-            $fixup_json_5 = [regex]::Replace($fixup_json_4, '(?m)^(?!.*\bremoveHints\b).*$\n?|"(?:\\.|[^"\\])*"(?=\s*:)|(\b(?:\w+(?:\.\w+)*|\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\b)', { 
-                    param($m)
-                    if ($m.Groups[1].Success) {
-                        '"' + $m.Value + '"' 
+                        '"' + $m.Value.split(",") + '"' 
                     } else {
                         $m.Value
                     }
@@ -291,7 +287,7 @@ foreach ($mod in $mods) {
             )
 
 
-            $jsonContent = $fixup_json_5 | ConvertFrom-Json
+            $jsonContent = $fixup_json_4 | ConvertFrom-Json
             $jsonContent | Add-Member -NotePropertyName owner -NotePropertyValue $mod_info_object.id
             $skinData += $jsonContent
         } catch {
@@ -302,6 +298,46 @@ foreach ($mod in $mods) {
 
     #endregion
     
+    #region weapons
+    $weaponData = @()
+    foreach ($file in $weaponFiles) {
+        Write-Host "Processing WPN $($file.FullName)..."
+        try {
+
+            $json = Get-Content -Path $file.FullName -Raw
+
+            $json = $json.replace(";", ",") # game allows ; as commas too...
+            
+            $fixup_json_1 = [regex]::Replace($json, '(?![,\[])(?!\s*")([A-Z_]+[0-9]*)(?=[,\]])', { 
+                    param($m)
+                    if ($m.Groups[1].Success) {
+                        '"' + $m.Value.split(",") + '"' 
+                    } else {
+                        $m.Value
+                    }
+                }
+            )
+            
+            $fixup_json_2 = [regex]::Replace($fixup_json_1, '(?:\s+)([A-Z_]+)', { 
+                    param($m)
+                    if ($m.Groups[1].Success) {
+                        '"' + $m.Value.split(",") + '"' 
+                    } else {
+                        $m.Value
+                    }
+                }
+            )
+
+            $jsonContent = $fixup_json_2 | Remove-HashCommentsFromJson | Remove-FloatSuffix | ConvertFrom-Json
+
+            $jsonContent | Add-Member -NotePropertyName owner -NotePropertyValue $mod_info_object.id
+            $weaponData += $jsonContent
+        } catch {
+            Write-Warning "Failed to process WPN file: $($file.FullName) — $_"
+        }
+    }
+    $groupedData["weapons"] += $weaponData
+    #endregion
 
     
     $groupedData[$mod_info_object.id] = $modData

@@ -12,16 +12,14 @@ if (-not (Test-Path -LiteralPath $root)) {
 
 $whitelist = @(
     # graphics
-    "*\graphics\*ships\*",
-    "*\graphics\*hullmods\*",
-    "*\graphics\*weapons\*",
-    
-    # need for icons
-    "*\graphics\*codex\*",
+    "*\graphics*\ships\*",
+    "*\graphics*\hullmods\*",
+    "*\graphics*\weapons\*",
     
     # file extensions
     "*.skin",
     "*.ship",
+    "*.wpn",
     "*.variant",
     "*.faction",
     "*.ps1"
@@ -48,6 +46,10 @@ function Get-RelativePath($fullPath, $root) {
 }
 
 function Test-Whitelist($relativePath) {
+    if ( $relativePath.Contains("\normal\") -or $relativePath.Contains("\surface\") -or $relativePath.Contains("\material\")
+    ) {
+        return $false
+    }
     foreach ($pattern in $whitelist) {
         if ($relativePath -like $pattern) { return $true }
     }
@@ -83,6 +85,7 @@ $allItems = @($allItems) + @($rootItems) | Sort-Object FullName
 $keepPaths = @{}
 foreach ($item in $allItems) {
     $rel = Get-RelativePath $item.FullName $root
+    
     if (Test-Whitelist $rel) {
         $current = ''
         $parts = $rel -split '\\'

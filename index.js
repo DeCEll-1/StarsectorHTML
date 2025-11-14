@@ -147,7 +147,10 @@ function runMain() {
 
 async function checkForNewSources() {
     try {
-        const updateTimeURL = "https://raw.githubusercontent.com/DeCEll-1/StarsectorHTML/refs/heads/main/Resources/GameSources/mods/creation_date.txt";
+        let updateTimeURL = "https://raw.githubusercontent.com/DeCEll-1/StarsectorHTML/refs/heads/main/Resources/GameSources/mods/creation_date.txt";
+        if (location.hostname == "127.0.0.1"){
+            updateTimeURL = `${BASE_PATH}/Resources/GameSources/mods/creation_date.txt`
+        }
 
         const latestSourceDate = new Date(
             (await (await fetch(updateTimeURL)).text()).match(/(.*\.\d{3})/g)[0] + "Z"
@@ -370,9 +373,9 @@ function updateSearch(filter = '') {
         img: ICON_CODEX_ARROW_UP
     })
     switch (search_category) {
-        case Categories.None     : renderRoot(ul); break;
-        case Categories.Ships    : renderShipList(ul, filter); break;
-        case Categories.Stations : renderStationList(ul, filter); break;
+        case Categories.None: renderRoot(ul); break;
+        case Categories.Ships: renderShipList(ul, filter); break;
+        case Categories.Stations: renderStationList(ul, filter); break;
 
         default:
             break;
@@ -547,6 +550,42 @@ function renderStationList(ul, filter = '') {
     }
     //#endregion
 
+}
+
+function renderWeaponList() {
+    /* 
+    refs
+
+    https : //www.w3.org/TR/xml-entity-names/025.html
+    https : //unicode.org/charts/PDF/U1F780.pdf
+    
+
+    small : --------- : ---------------------------------- : 
+    |---- : balistic  : □                                  : 
+    |---- : missile   : ◇                                  : 
+    |---- : energy    : ○                                  : 
+    |---- : hybrid    : 1F7D7 🟗 CIRCLED SQUARE            : 
+    |---- : composite : ⛋                                  : 
+    |---- : synergy   : 1F7D7 🟗 CIRCLED SQUARE ROTATED 90 : 
+    |---- : universal : 1F7D7 🟗 CIRCLED SQUARE + ◇        : 
+    med   : --------- : ---------------------------------- : 
+    |---- : balistic  : 2x□; one dimmer smaller one        : 
+    |---- : missile   : 2x◇; one dimmer smaller one        : 
+    |---- : energy    : 2x○; one dimmer smaller one        : 
+    |---- : hybrid    : 1F7D7 🟗 CIRCLED SQUARE            : 
+    |---- : composite : ⛋                                  : 
+    |---- : synergy   : 1F7D7 🟗 CIRCLED SQUARE ROTATED 90 : 
+    |---- : universal : 1F7D7 🟗 CIRCLED SQUARE + ◇        : 
+    large : --------- : ---------------------------------- : 
+    |---- : balistic  : 2x□; one dimmer smaller one        : 
+    |---- : missile   : 2x◇; one dimmer smaller one        : 
+    |---- : energy    : 2x○; one dimmer smaller one        : 
+    |---- : hybrid    : 1F7D7 🟗 CIRCLED SQUARE            : 
+    |---- : composite : ⛋                                  : 
+    |---- : synergy   : 1F7D7 🟗 CIRCLED SQUARE ROTATED 90 : 
+    |---- : universal : 1F7D7 🟗 CIRCLED SQUARE + ◇        : 
+
+    */
 }
 
 /**
