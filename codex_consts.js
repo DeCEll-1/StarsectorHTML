@@ -287,7 +287,7 @@ const WEAPON_HTML =
                                     </div>
                                     <div class="center mt-4">
                                         <span class="share codex-border" onclick="
-                                navigator.clipboard.writeText(\`https:\/\/decell-1.github.io/StarsectorHTMLEmbeds/AutoGen/Embeds/\${current_id}\`);
+                                navigator.clipboard.writeText(\`https:\/\/decell-1.github.io/StarsectorHTMLEmbeds/AutoGen/Embeds/\${current_id}_Weapons\`);
                                     showToaster(
                                         'Copied to clipboard!',
                                         'Ship link has been copied to the clipboard.',

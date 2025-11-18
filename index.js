@@ -846,7 +846,7 @@ function updateCodex(id, log = true) {
     updateCategoryWithID(id);
 
     EL.item_view.innerHTML = VIEW_TEMPLATES[search_category].html;
-    // handleParams();
+    handleParams();
     updateEL();
 
     return VIEW_TEMPLATES[search_category].func(id, log);
@@ -1382,11 +1382,11 @@ function setPrimaryData(weapon, weapon_data) {
     }
 
     if (weapon_data.customPrimary.includes("%s"))
-        EL.customPrimary.innerHTML = format(weapon_data.customPrimary, weapon_data.customPrimaryHL.split(" | "))
+        EL.customPrimary.innerHTML = format(weapon_data.customPrimary, weapon_data.customPrimaryHL.split("|"))
     else {
         let cusPrim = weapon_data.customPrimary;
 
-        weapon_data.customPrimaryHL.split(" | ").forEach(s => {
+        weapon_data.customPrimaryHL.split("|").forEach(s => {
             cusPrim = cusPrim.replace(s, "<span class='stat-yellow'>" + s + "</span>");
         });
 
@@ -1492,11 +1492,11 @@ function setAncillaryData(weapon, weapon_data, projectile) {
 
 
     if (weapon_data.customAncillary.includes("%s"))
-        EL.customAncillary.innerHTML = format(weapon_data.customAncillary, weapon_data.customAncillaryHL.split(" | "))
+        EL.customAncillary.innerHTML = format(weapon_data.customAncillary, weapon_data.customAncillaryHL.split("|"))
     else {
         let cusPrim = weapon_data.customAncillary;
 
-        weapon_data.customAncillaryHL.split(" | ").forEach(s => {
+        weapon_data.customAncillaryHL.split("|").forEach(s => {
             cusPrim = cusPrim.replace(s, "<span class='stat-yellow'>" + s + "</span>");
         });
 
