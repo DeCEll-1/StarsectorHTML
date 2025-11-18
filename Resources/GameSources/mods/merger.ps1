@@ -197,6 +197,9 @@ foreach ($mod in $mods) {
     
     $weaponFiles = @()
     $weaponFiles = Get-ChildItem -Path $mod -Filter *.wpn -Recurse
+    
+    $projectileFiles = @()
+    $projectileFiles = Get-ChildItem -Path $mod -Filter *.proj -Recurse
 
     
     $mod_info_object = ((Get-Content -Path ($mod.FullName + "\mod_info.json") -Raw) | Remove-HashCommentsFromJson | Remove-FloatSuffix | ConvertFrom-Json)
@@ -242,6 +245,10 @@ foreach ($mod in $mods) {
             $filtered = $data | Select-Object -Property @($availableCols)
             $key = [System.IO.Path]::GetFileNameWithoutExtension($file.Name)
             $filtered | Add-Member -NotePropertyName owner -NotePropertyValue $mod_info_object.id
+            $filtered = $filtered | Where-Object {
+                $_.id -and $_.id.Length -ge 2
+            }
+
             $groupedData[$key] += $filtered
         } catch {
             Write-Warning "Failed to process CSV: $($file.FullName) — $_"
@@ -286,8 +293,13 @@ foreach ($mod in $mods) {
                 }
             )
 
+            
 
-            $jsonContent = $fixup_json_4 | ConvertFrom-Json
+            $fixup_json_5 = $fixup_json_4 | Remove-HashCommentsFromJson | Remove-FloatSuffix 
+
+            $jsonContent = [regex]::matches($fixup_json_5, "\{(?<content>(?:[^{}]+|\{(?<DEPTH>)|\}(?<-DEPTH>))*)(?(DEPTH)(?!))\}")[0].Value | ConvertFrom-Json
+
+
             $jsonContent | Add-Member -NotePropertyName owner -NotePropertyValue $mod_info_object.id
             $skinData += $jsonContent
         } catch {
@@ -328,7 +340,9 @@ foreach ($mod in $mods) {
                 }
             )
 
-            $jsonContent = $fixup_json_2 | Remove-HashCommentsFromJson | Remove-FloatSuffix | ConvertFrom-Json
+            $fixup_json_3 = $fixup_json_2 | Remove-HashCommentsFromJson | Remove-FloatSuffix 
+
+            $jsonContent = [regex]::matches($fixup_json_3, "\{(?<content>(?:[^{}]+|\{(?<DEPTH>)|\}(?<-DEPTH>))*)(?(DEPTH)(?!))\}")[0].Value | ConvertFrom-Json
 
             $jsonContent | Add-Member -NotePropertyName owner -NotePropertyValue $mod_info_object.id
             $weaponData += $jsonContent
@@ -337,6 +351,50 @@ foreach ($mod in $mods) {
         }
     }
     $groupedData["weapons"] += $weaponData
+    #endregion
+
+    #region projFiles
+
+    $projectiles = @();
+    foreach ($file in $projectileFiles) {
+        Write-Host "Processing PROJ $($file.FullName)..."
+        try {
+
+            $json = Get-Content -Path $file.FullName -Raw
+
+            $json = $json.replace(";", ",") # game allows ; as commas too...
+            
+            $fixup_json_1 = [regex]::Replace($json, '(?![,\[])(?!\s*")([A-Z_]+[0-9]*)(?=[,\]\n\r}])', { 
+                    param($m)
+                    if ($m.Groups[1].Success) {
+                        '"' + $m.Value.split(",") + '"' 
+                    } else {
+                        $m.Value
+                    }
+                }
+            )
+            
+            $fixup_json_2 = [regex]::Replace($fixup_json_1, '(?:\s+)([A-Z_]+)', { 
+                    param($m)
+                    if ($m.Groups[1].Success) {
+                        '"' + $m.Value.split(",") + '"' 
+                    } else {
+                        $m.Value
+                    }
+                }
+            )
+
+            $fixup_json_3 = $fixup_json_2 | Remove-HashCommentsFromJson | Remove-FloatSuffix 
+
+            $jsonContent = [regex]::matches($fixup_json_3, "\{(?<content>(?:[^{}]+|\{(?<DEPTH>)|\}(?<-DEPTH>))*)(?(DEPTH)(?!))\}")[0].Value | ConvertFrom-Json
+
+            $jsonContent | Add-Member -NotePropertyName owner -NotePropertyValue $mod_info_object.id
+            $projectiles += $jsonContent
+        } catch {
+            Write-Warning "Failed to process PROJ file: $($file.FullName) — $_"
+        }
+    }
+    $groupedData["projectiles"] += $projectiles
     #endregion
 
     

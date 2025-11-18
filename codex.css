@@ -103,11 +103,6 @@ td {
     height: 720px;
 }
 
-
-.mb-4 {
-    margin-bottom: 8px;
-}
-
 .d-flex {
     display: flex;
 }
@@ -118,23 +113,27 @@ td {
 
 .center {
     text-align: center;
+    align-items: center;
+    align-content: center;
 }
 
+.header,
 .stats-header,
 .ship-header {
     font-weight: lighter;
     justify-content: space-between;
+    padding: 1px 0;
     /* color: #A6D8F9; */
-
 }
 
 .logistical-content,
+.weapon-stats,
 .combat-content * {
     color: #FFF;
     text-shadow: none;
 }
 
-:is(.logistical-header, .combat-header, .ship-header, .search-header),
+:is(.logistical-header, .combat-header, .ship-header, .search-header, .header),
 .related-entries::before {
     background-color: #15414D;
     text-align: center;
@@ -172,11 +171,15 @@ td ul li {
     width: 100%;
 }
 
-.combat-content ul li span:not([no-color]) {
+:is(.combat-content, .weapon-stats) ul li span:not([no-color]) {
     color: #FFDD00;
 }
 
-:is(.combat-content, .logistical-content) ul span:not([no-color]) {
+:is(.weapon-stats) ul {
+    margin-right: 8px;
+}
+
+:is(.combat-content, .logistical-content, .weapon-stats) ul span:not([no-color]) {
     float: right;
     color: #E0FFEF;
     text-shadow: none;
@@ -288,6 +291,10 @@ td ul li:last-child::after {
     justify-content: space-around;
 }
 
+.justify-space-between {
+    justify-content: space-between;
+}
+
 .lower-content {
     width: 100%;
     justify-content: space-around;
@@ -305,6 +312,10 @@ td ul li:last-child::after {
 
 .ship-lore p {
     margin-bottom: 0px;
+}
+
+.weapon-header {
+    width: 30%;
 }
 
 .related-entries {
@@ -480,6 +491,11 @@ input[type=text]:focus::placeholder {
 
 .element-highlight {
     background-color: #10303A;
+    /* position: absolute;
+    inset: 0;
+    background-size: 100%;
+    pointer-events: none;
+    z-index: -1; */
 }
 
 .search-bar-ship-list ul li div:has(> img) {
@@ -491,7 +507,8 @@ input[type=text]:focus::placeholder {
 }
 
 .search-bar-ship-list ul li div:nth-child(2) {
-    max-width: 75%;
+    max-width: 73%;
+    margin-left: 4px;
 }
 
 .search-bar-ship-list ul li div div:first-child {
@@ -507,8 +524,8 @@ input[type=text]:focus::placeholder {
 
 .search-bar-ship-list ul li div img {
     margin: auto;
-    max-width: 32px;
-    max-height: 32px;
+    max-width: 40px;
+    max-height: 40px;
 }
 
 /* #endregion */
@@ -564,7 +581,7 @@ input[type=text]:focus::placeholder {
 }
 
 .toaster-image {
-    width: 80px ;
+    width: 80px;
     height: 80px;
     min-width: 80px;
     min-height: 80px;
@@ -582,6 +599,61 @@ input[type=text]:focus::placeholder {
 
 .toaster-title {
     font-size: 12px;
+}
+
+/* #endregion */
+
+/* #region weapons */
+
+.svg-weapon-overlay {
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+    width: 64px;
+    height: 64px;
+    align-content: center;
+    flex-direction: column;
+}
+
+.svg-weapon-overlay img {
+    margin: auto;
+    /* display: inline; */
+    transform: rotateZ(45deg);
+}
+
+/* ::before draws the SVG */
+.svg-weapon-overlay::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-size: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+
+.view-weapon-img-container {
+    margin-top: 32px;
+    margin: 24px 0 0 0 !important;
+    width: 25%;
+    min-height: 48px;
+    height: 100%;
+}
+
+.view-weapon-img-container::before {
+    max-width: 48px;
+    max-height: 48px;
+    /* aspect-ratio: 1; */
+    margin: 0 auto;
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+
+.view-weapon-img-container img {
+    max-width: 48px;
+    max-height: 48px;
 }
 
 /* #endregion */

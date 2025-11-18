@@ -3,6 +3,7 @@
 // get this file from: https://www.npmjs.com/package/simplebar?activeTab=code
 /// <reference path="./Resources/libs/SimpleBar/simplebar.js" />
 /// <reference path="./consts.js" />
+/// <reference path="./codex_consts.js" />
 
 
 /** @type {Global} */
@@ -15,12 +16,14 @@ let mod_info;
 
 //#region elements
 // @ts-ignore
-const EL = (() => {
+/** @type {EL} */
+let EL;
+function updateEL() {
     const ids = [
         // containers
         "codex", "item_view", "main_div",
         // header
-        "ship_name_header", "ship_image",
+        "ship_name_header", "image",
         // combat
         "cr_deployment", "recovery_rate", "recovery_cost", "deployment_points",
         "peak_performance_time", "crew_complement", "hull_size", "ordnance_points",
@@ -39,19 +42,35 @@ const EL = (() => {
         "mounts_list", "armaments_list", "hullmods_list",
         "mod_list", "search_bar_mod_list_ul",
         // misc
-        "design_type", "ship_description", "ship_price", "related_entries",
+        "design_type", "description", "price", "related_entries",
         // toaster
         "toaster", "toaster_image", "toaster_title", "toaster_text",
         // search
-        "search_bar_text_box", "search_bar_list_ul", "search_bar", "search_list_container"
+        "search_bar_text_box", "search_bar_list_ul", "search_bar", "search_list_container",
+        // weapon
+        "primary_role", "mount_type", "stat_modifier_specification", "op_cost", "range", "damage",
+        "damage_second", "emp_damage", "flux_second", "flux_shot", "flux_non_emp_damage",
+        "damage_type", "tracking", "turn", "speed", "accuracy", "seconds_reload", "max_ammo",
+        "reload_size", "refire_delay", "type_image",
+        "customPrimary", "customAncillary", "hitpoints", "seconds_reload_name", "max_ammo_name",
+        "reload_size_name", "no_recharge_ammo_display", "burst_size", "stats_container"
+
     ];
-    return Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
-})();
+    // @ts-ignore
+    EL = Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
+}
+updateEL();
 //#endregion
 
 //#region helper functions
 
 function capitalize(s) { return ((s[0] ?? "NULL").toUpperCase() + (s ?? "NULL").slice(1).toLowerCase()).replace("_", " "); }
+/** @param {string} text */
+function format(text, ...els) {
+    return text.split("%s").reduce((acc, curr, i) => {
+        return acc + curr + ((els[0][i]) ? "<span class='stat-yellow'>" + els[0][i] + "</span>" : "");
+    }, "")
+}
 function setValue(el, val, suffix = '') { return el.textContent = (val == null) ? '—' : val + suffix; }
 function make(html, tag = 'div') { const el = document.createElement(tag); el.innerHTML = html; return el; };
 function firstNonEmpty(...vals) {
@@ -91,6 +110,24 @@ function updateImgShipSource(img, c) {
     img.src = getShipSkinImagePath(c.ship ?? c.base, c.skin)
     img.onerror = function () {
         img.src = getShipOwnedSkinImagePath(c.ship ?? c.base, c.skin)
+    }
+}
+
+function getWeaponImagePath(weapon) {
+    return `${BASE_PATH}/Resources/GameSources/mods/${globalSources[weapon?.owner].directory}/` + firstNonEmpty(weapon.turretSprite, weapon.hardpointSprite);
+}
+
+function getWeaponImagePathCore(weapon) {
+    return `${BASE_PATH}/Resources/GameSources/mods/starsector-core/` + firstNonEmpty(weapon.turretSprite, weapon.hardpointSprite);
+}
+
+function updateImgWeaponSource(img,
+    /** @type {{weapon?: WeaponJson, weapon_data?: WeaponCSV}} */
+    c
+) {
+    img.src = getWeaponImagePath(c.weapon);
+    img.onerror = () => {
+        img.src = getWeaponImagePathCore(c.weapon)
     }
 }
 
@@ -165,7 +202,9 @@ async function checkForNewSources() {
 
         await Promise.all([
             fetch(`${BASE_PATH}/Resources/GameSources/mods/merged_game_sources.json`).then(r => r.json())
-        ]).then(([data]) => { globalSources = data; })
+        ]).then(([data]) => {
+            globalSources = data; localStorage.setItem(LocalStorageKeys.global_sources, JSON.stringify(globalSources));
+        })
 
         localStorage.setItem(LocalStorageKeys.global_sources, JSON.stringify(globalSources));
 
@@ -225,8 +264,18 @@ function main() {
     else
         updateCodex(lastCodex);
 
+    if (searchParams.has("category"))
+        // @ts-ignore
+        changeSearchCategory(searchParams.get("category"));
+    else
+        changeSearchCategory(search_category);
+
     console.log(searchParams)
 
+    handleParams();
+}
+
+function handleParams() {
     if (searchParams.has("no_search"))
         handleNoSearchBar()
     if (searchParams.has("no_item_view"))
@@ -242,9 +291,11 @@ function main() {
     if (searchParams.has("no_lower_content"))
         handleNoLowerContent()
 }
+window.handleParams = handleParams;
 //#endregion
 
 const MAX_DISTANCE = 2;
+let testing = false;
 
 //#region mod search list
 
@@ -287,13 +338,14 @@ function setSelectedMod(selectedModId) {
         return false;
     }
 
+    // @ts-ignore
     let target = getModLI();
     if (!highlightTarget()) {
         setTimeout(() => {
             if (!highlightTarget()) {
                 showToaster(
                     "Error.",
-                    `Could not find the mod list element to highlight for ${mod_info.name}.`,
+                    `Error while rendering ${mod_info.name}.`,
                     { img: ICON_ERROR_PATH }
                 );
             }
@@ -301,10 +353,11 @@ function setSelectedMod(selectedModId) {
     }
 
     localStorage.setItem(LocalStorageKeys.last_mod_selected, selectedModId)
-    if (oldID != selectedModId)
+    if (oldID != selectedModId && !testing)
         updateSearch();
 }
 
+// @ts-ignore
 function updateModSearch(filter = '') {
     const ul = EL.search_bar_mod_list_ul;
     ul.innerHTML = '';
@@ -376,6 +429,7 @@ function updateSearch(filter = '') {
         case Categories.None: renderRoot(ul); break;
         case Categories.Ships: renderShipList(ul, filter); break;
         case Categories.Stations: renderStationList(ul, filter); break;
+        case Categories.Weapons: renderWeaponList(ul, filter); break;
 
         default:
             break;
@@ -414,12 +468,13 @@ function renderRoot(/** @type HTMLElement */ul) {
         img: CODEX_ICON_WEAPONS
     })
 }
-
+//#region ships
 /** @param {{ ship?: ShipJSON; skin?: Skin; modId?: string; filter?: string; }} [args]*/
 function isShipLegit(args = {}) {
     args = { ...{ modId: "starsector-core", filter: "" }, ...args };
     const owner = args.skin?.owner ?? args.ship?.owner;
-    if (owner !== args.modId) return false;
+    if (!args.ship) return false;
+    if (owner !== args.modId && !testing) return false;
     if (args.ship.hullSize === "FIGHTER") return false;
     if (args.skin?.restoreToBaseHull) return false;
     const csvId = args.skin ? args.skin.baseHullId : args.ship.hullId;
@@ -437,7 +492,7 @@ function isShipLegit(args = {}) {
     return true;
 }
 
-function renderShipList(ul, filter = '') {
+function getShipCandidates(filter) {
     const candidates = [];
 
     //#region add ships to the list
@@ -469,6 +524,12 @@ function renderShipList(ul, filter = '') {
     });
     //#endregion
 
+    return candidates;
+}
+
+function renderShipList(ul, filter = '') {
+    const candidates = getShipCandidates(filter);
+
     //#region render
     for (const c of candidates) {
         const li = createListItem(ul,
@@ -477,17 +538,56 @@ function renderShipList(ul, filter = '') {
                 desc: c.csv.designation,
                 id: c.type === 'skin' ? c.skin?.skinHullId : c.ship?.hullId,
             })
-
         updateImgShipSource(li.img, c);
+
     }
     //#endregion
+}
+//#endregion
+
+//#region stations
+function getStationCandidates(filter) {
+    const candidates = [];
+
+    //#region add ships to the list
+    for (const ship of globalSources.ships) {
+        if (!isStationLegit({ ship: ship, modId: currentSelectedModId, filter: filter })) continue;
+
+        const csv = globalSources.ship_data.find(s => s.id === ship.hullId);
+        candidates.push({ type: 'ship', ship, csv });
+    }
+    //#endregion
+
+    //#region add skins to the list
+    for (const skin of globalSources.skins) {
+        const base = globalSources.ships.find(s => s.hullId === skin.baseHullId);
+        if (!base) continue;                         // base hull missing → skip
+
+        if (!isStationLegit({ ship: base, skin, modId: currentSelectedModId, filter })) continue;
+
+        const csv = globalSources.ship_data.find(s => s.id === skin.baseHullId);
+        candidates.push({ type: 'skin', skin, base, csv });
+    }
+    //#endregion
+
+    //#region sort
+    candidates.sort((a, b) => {
+        const nameA = firstNonEmpty(a.csv.name, a.skin?.hullName, a.base?.hullName, a.ship?.hullName);
+        const nameB = firstNonEmpty(b.csv.name, b.skin?.hullName, b.base?.hullName, a.ship?.hullName);
+        return nameA.localeCompare(nameB);
+    });
+    //#endregion
+
+
+    return candidates;
 }
 
 /** @param {{ ship?: ShipJSON; skin?: Skin; modId?: string; filter?: string; }} [args]*/
 function isStationLegit(args = {}) {
     args = { ...{ modId: "starsector-core", filter: "" }, ...args };
     const owner = args.skin?.owner ?? args.ship?.owner;
-    if (owner !== args.modId) return false;
+    if (!args.ship) return false;
+    if (owner !== args.modId && !testing) return false;
     if (args.ship.hullSize === "FIGHTER") return false;
     if (args.skin?.restoreToBaseHull) return false;
     const csvId = args.skin ? args.skin.baseHullId : args.ship.hullId;
@@ -551,20 +651,69 @@ function renderStationList(ul, filter = '') {
     //#endregion
 
 }
+//#endregion
 
-function renderWeaponList() {
+// #region weapons
+
+function getWeaponCandidates(filter) {
+    const candidates = [];
+    for (const weapon_data of globalSources.weapon_data) {
+        const weapon = globalSources.weapons.find(w => w.id == weapon_data.id);
+
+        if (!isWeaponLegit({ weapon: weapon, weapon_data: weapon_data, modId: currentSelectedModId, filter: filter })) continue;
+
+        candidates.push({ weapon: weapon, weapon_data: weapon_data });
+    }
+    candidates.sort((a, b) => a.weapon_data.name.localeCompare(b.weapon_data.name));
+
+    return candidates;
+}
+
+/** @param {{ weapon?: WeaponJson; weapon_data?: WeaponCSV; modId?: string; filter?: string; }} [args]*/
+function isWeaponLegit(args) {
+    args = { ...{ modId: "starsector-core", filter: "" }, ...args };
+    const owner = args?.weapon?.owner;
+    if (owner !== args.modId && !testing) return false;
+    if (args.weapon_data?.hints.includes("HIDE_IN_CODEX")) return false;
+    if (args.weapon_data?.hints.includes("SYSTEM")) return false;
+    if (args.weapon_data?.name.startsWith("#")) return false;
+    if (args.filter) {
+        const nameToSearch = args.weapon_data.name;
+        if (substringLevenshtein(nameToSearch, args.filter) > MAX_DISTANCE) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function renderWeaponList(ul, filter = '') {
     /* 
     was gonna use unicode characters to render the background for weapons, 
     but thats too complicated so i just made some svgs
     see "./mounts.css.txt" and "./Resources/SVGs/WeaponSlots/SVG/*.svg"
     */
 
-    const candidates = [];
+    const candidates = getWeaponCandidates(filter);
 
-    
+    //#region render
+    for (const c of candidates) {
+        const li = createListItem(ul,
+            {
+                title: c.weapon_data.name,
+                desc: capitalize(c.weapon.size),
+                id: c.weapon_data.id,
+            })
+        li.imgDiv.classList.add("svg-weapon-overlay");
 
+        li.imgDiv.classList.add(`${firstNonEmpty(c.weapon?.mountTypeOverride, c.weapon.type)[0].toUpperCase() + "_" + c.weapon.size[0].toUpperCase()}`)
+        // li.imgDiv.classList.add("bg-i-size-search-list")
+        updateImgWeaponSource(li.img, c);
+    }
+    //#endregion
 
 }
+
+// #endregion
 
 /**
  * @param {HTMLElement} [ul] 
@@ -576,10 +725,11 @@ function renderWeaponList() {
  * onClick?: () => void;
  * }} [args={}] 
  * @returns {{
- * li    : HTMLElement,
- * img   : HTMLImageElement,
- * title : HTMLElement,
- * desc  : HTMLElement,
+ * li     : HTMLElement,
+ * img    : HTMLImageElement,
+ * imgDiv : HTMLElement,
+ * title  : HTMLElement,
+ * desc   : HTMLElement,
  * }}
  */
 function createListItem(ul, args = {}) {
@@ -641,6 +791,7 @@ function createListItem(ul, args = {}) {
     return {
         ["li"]: li,
         ["img"]: img,
+        ["imgDiv"]: imgDiv,
         ["title"]: titleDiv,
         ["desc"]: descDiv
     }
@@ -650,8 +801,76 @@ function createListItem(ul, args = {}) {
 
 //#region populating codex
 
-function updateCodex(selectedHull, log = true) {
-    localStorage.setItem(LocalStorageKeys.last_searched_item, selectedHull);
+const VIEW_TEMPLATES = {
+    [Categories.None]: { html: "", func: () => { } },
+    [Categories.Ships]: { html: SHIP_HTML, func: updateShip },
+    [Categories.Stations]: { html: SHIP_HTML, func: updateShip },
+    [Categories.Weapons]: { html: WEAPON_HTML, func: updateWeapon },
+};
+
+function updateCategoryWithID(id) {
+    // not perfect, its not required for weapons and ships and whatnot to have seperate IDs
+    const skin = globalSources.skins.find(s => s.skinHullId === id);
+    const baseHullId = skin ? skin.baseHullId : id;
+
+    const shipJson = globalSources.ships.find(s => s.hullId === baseHullId);
+    const weapon = globalSources.weapons.find(s => s.id == id);
+    const weapon_data = globalSources.weapon_data.find(s => s.id == id);
+
+    const shipLegit = isShipLegit({ ship: shipJson, skin, modId: currentSelectedModId, filter: "" });
+    const stationLegit = isStationLegit({ ship: shipJson, modId: currentSelectedModId, filter: "" });
+    const weaponLegit = isWeaponLegit({ weapon: weapon, weapon_data: weapon_data, modId: currentSelectedModId, filter: '' });
+
+    const currentCategoryIsLegit =
+        (search_category === Categories.Ships && shipLegit) ||
+        (search_category === Categories.Stations && stationLegit) ||
+        (search_category === Categories.Weapons && weaponLegit);
+
+
+    if (currentCategoryIsLegit)
+        return;
+
+    if (shipLegit) {
+        changeSearchCategory(Categories.Ships);
+    } else if (stationLegit) {
+        changeSearchCategory(Categories.Stations);
+    } else if (weaponLegit) {
+        changeSearchCategory(Categories.Weapons);
+    }
+    updateSearch();
+}
+
+function updateCodex(id, log = true) {
+    localStorage.setItem(LocalStorageKeys.last_searched_item, id);
+    current_id = id;
+    updateCategoryWithID(id);
+
+    EL.item_view.innerHTML = VIEW_TEMPLATES[search_category].html;
+    // handleParams();
+    updateEL();
+
+    return VIEW_TEMPLATES[search_category].func(id, log);
+}
+
+
+
+/** @type {ShipReturnData} */
+let current_ship;
+/** @type {WeaponReturnData} */
+let current_weapon;
+/** @type {string} */
+let current_id;
+
+// @ts-ignore
+window.updateCodex = updateCodex;
+
+function setPrice(price) {
+    EL.price.dataset.price = price + "¢";
+}
+
+//#region ship
+
+function updateShip(selectedHull, log) {
 
     //#region data collection
     const skin = globalSources.skins.find(s => s.skinHullId === selectedHull);
@@ -669,6 +888,7 @@ function updateCodex(selectedHull, log = true) {
     const builtInWeapons = Object.values({ ...(shipJson.builtInWeapons ?? {}), ...(skin?.builtInWeapons ?? {}) }).filter(s => !(skin?.removeBuiltInWeapons ?? []).includes(s))
 
     const weapons = globalSources.weapon_data.filter(w => {
+        // @ts-ignore
         const tags = w.tags.trim().toLowerCase().split(",").map(s => s.trim());
 
         return builtInWeapons.includes(w.id)
@@ -744,42 +964,30 @@ function updateCodex(selectedHull, log = true) {
     //#endregion
 
     //#region render
-    const headerRet = setHeader(shipJson, csv, skin);
-    setImage(shipJson, skin);
-    setCombatStats(csv, shipJson, skin);
-    setLogistics(csv, sensorDict);
-    setDefense(csv, right_click_system);
-    setFluxAndSpeed(csv);
-    setSystem(system, systemDesc);
-    renderMounts(shipJson, skin, csv);
-    renderBuiltInArmaments(shipJson, skin, weapons, wings);
-    renderHullmods(hullmods);
-    setDesignType(color);
-    setDescription(description, skin);
-    setPrice(csv, skin);
+    const headerRet = setShipHeader(shipJson, csv, skin);
+    setShipImage(shipJson, skin);
+    setShipCombatStats(csv, shipJson, skin);
+    setShipLogistics(csv, sensorDict);
+    setShipDefense(csv, right_click_system);
+    setShipFluxAndSpeed(csv);
+    setShipSystem(system, systemDesc);
+    renderShipMounts(shipJson, skin, csv);
+    renderShipBuiltInArmaments(shipJson, skin, weapons, wings);
+    renderShipHullmods(hullmods);
+    setShipDesignType(color);
+    setShipDescription(description, skin);
+    setShipPrice(csv, skin);
     //#endregion
-
-    if (isShipLegit({ ship: shipJson, skin, modId: currentSelectedModId, filter: "" })) {
-        if (search_category != Categories.Ships) {
-            changeSearchCategory(Categories.Ships);
-            updateSearch();
-        }
-    } else {
-        if (search_category != Categories.Stations) {
-            changeSearchCategory(Categories.Stations);
-            updateSearch();
-        }
-    }
 
     //#region return
 
-    /** @type {ship_data} */
+    /** @type {ShipReturnData} */
     current_ship = {
         hullName: headerRet.name,
         hullHeader: headerRet.header,
         selectedHull: selectedHull,
         // @ts-ignore
-        image: EL.ship_image.src,
+        image: EL.image.src,
         baseHullId: baseHullId,
         skin: skin,
         shipJson: shipJson,
@@ -793,33 +1001,25 @@ function updateCodex(selectedHull, log = true) {
         systemDesc: systemDesc,
         color: color
     }
-
-
     return current_ship;
 
     //#endregion
 }
 
-/** @type {ship_data} */
-let current_ship;
-
-
 // @ts-ignore
-window.updateCodex = updateCodex;
-
-function setHeader(ship, csv, skin) {
+function setShipHeader(ship, csv, skin) {
     const name = firstNonEmpty(skin?.hullName, csv.name);
     EL.ship_name_header.textContent = `${name}-class ${firstNonEmpty(skin?.hullDesignation, csv?.designation)}`;
     return { name: name, header: EL.ship_name_header.textContent };
 }
 
-function setImage(ship, skin) {
-    const img = EL.ship_image
+function setShipImage(ship, skin) {
+    const img = EL.image
     // @ts-ignore
     updateImgShipSource(img, { ["ship"]: ship, ["skin"]: skin })
 }
 
-function setCombatStats(csv, ship, skin) {
+function setShipCombatStats(csv, ship, skin) {
     setValue(EL.cr_deployment, csv["CR to deploy"], "%");
     setValue(EL.recovery_rate, csv["cr %/day"], "%");
     setValue(EL.recovery_cost, csv["supplies/rec"]);
@@ -831,7 +1031,7 @@ function setCombatStats(csv, ship, skin) {
     setValue(EL.supplies_month, parseFloat(csv["supplies/mo"]).toFixed(1));
 }
 
-function setLogistics(csv, sensorDict) {
+function setShipLogistics(csv, sensorDict) {
     setValue(EL.cargo_cap, csv["cargo"]);
     setValue(EL.crew_cap, csv["max crew"]);
     setValue(EL.crew_min, csv["min crew"]);
@@ -843,7 +1043,7 @@ function setLogistics(csv, sensorDict) {
     setValue(EL.sensor_strength, sensorDict[size]);
 }
 
-function setDefense(csv, right_click_system) {
+function setShipDefense(csv, right_click_system) {
     setValue(EL.hull_integrity, csv["hitpoints"]);
     setValue(EL.armor_rating, csv["armor rating"]);
 
@@ -888,18 +1088,18 @@ function setDefense(csv, right_click_system) {
     }
 }
 
-function setFluxAndSpeed(csv) {
+function setShipFluxAndSpeed(csv) {
     setValue(EL.flux_cap, csv["max flux"]);
     setValue(EL.flux_diss, csv["flux dissipation"]);
     setValue(EL.speed_max, csv["max speed"]);
 }
 
-function setSystem(system, desc) {
+function setShipSystem(system, desc) {
     EL.system_title.textContent = (system?.name != "") ? system?.name : "No name… yet";
     EL.system_description.textContent = firstNonEmpty(desc?.text1, "No description… yet");
 }
 
-function renderMounts(shipJson, skin, csv) {
+function renderShipMounts(shipJson, skin, csv) {
 
     const slots = (shipJson.weaponSlots ?? [])
         .map(slot => {
@@ -936,7 +1136,7 @@ function renderMounts(shipJson, skin, csv) {
     if (!EL.mounts_list.children.length) EL.mounts_list.appendChild(make("None", 'li'));
 }
 
-function renderBuiltInArmaments(
+function renderShipBuiltInArmaments(
     /** @type {ShipJSON} */
     shipJson,
     /** @type {Skin} */
@@ -977,6 +1177,7 @@ function renderBuiltInArmaments(
 
 
     EL.armaments_list.innerHTML = "";
+    // @ts-ignore
     for (const [key, item] of Object.entries(counts)) {
         let li;
         if (item.type == "WEAPON")
@@ -992,7 +1193,7 @@ function renderBuiltInArmaments(
     if (!EL.armaments_list.children.length) EL.armaments_list.appendChild(make("None", 'li'));
 }
 
-function renderHullmods(mods) {
+function renderShipHullmods(mods) {
     EL.hullmods_list.innerHTML = "";
     if (mods.length === 0) {
         EL.hullmods_list.appendChild(make("None", 'li'));
@@ -1012,24 +1213,302 @@ function renderHullmods(mods) {
     });
 }
 
-function setDesignType(color) {
+function setShipDesignType(color) {
     EL.design_type.dataset.className = color.type;
     EL.design_type.style.setProperty('--data-class-color', color.hex);
 }
 
-function setDescription(desc, skin) {
+function setShipDescription(desc, skin) {
     const parts = [desc?.text1, desc?.text2, desc?.text3, desc?.text4, desc?.text5].filter(Boolean);
     let html = parts.map(t => t.replaceAll("\r\n", '<br/>')).join('<br/>');
     if (skin?.descriptionPrefix?.length > 5) html = `${skin.descriptionPrefix}<br><br>${html}`;
-    EL.ship_description.innerHTML = html;
+    EL.description.innerHTML = html;
 }
 
-function setPrice(csv, skin) {
+function setShipPrice(csv, skin) {
     const price = firstNonEmpty(
         skin?.baseValue,
         (parseFloat(csv["base value"]) * (skin?.baseValueMult ?? 1.0)).toLocaleString('en-US', { style: 'currency', currency: 'EUR' }).slice(1));
-    EL.ship_price.dataset.price = price;
+    setPrice(price);
 }
+
+//#endregion
+
+//#region weapons
+
+function updateWeapon(weaponID, log) {
+
+    //#region data collection
+
+    const weapon = globalSources.weapons.find(s => s.id == weaponID);
+    const weapon_data = globalSources.weapon_data.find(s => s.id == weaponID);
+    const projectile = globalSources.projectiles.find(s => s.id == weapon.projectileSpecId);
+    const description = globalSources.descriptions.find(d => d.id === weapon.id && d.type === "WEAPON");
+    weapon_data["burst size"] = firstNonEmpty(weapon_data["burst size"], 1);
+    weapon_data["reload size"] = firstNonEmpty(weapon_data["reload size"], 1);
+    const tech = weapon_data["tech/manufacturer"]
+
+    /** @type {Color} */
+    const color = (tech && globalSources.colors[tech]) ? {
+        type: tech,
+        hex: globalSources.colors[tech]
+    } : (tech) ? { type: tech, hex: "#9BE4FF" } : { type: "Common", hex: "#BEC8C8" };
+
+    //#endregion
+
+    //#region log
+
+    if (log) {
+        console.log(" ")
+        console.log("Weapon:", weapon);
+        console.log("Weapon CSV:", weapon_data);
+        console.log("Projectile:", projectile);
+        console.log("Description:", description);
+        console.log("Color:", color);
+        console.log(" ")
+    }
+
+    //#endregion
+
+    //#region render
+
+    setWeaponTitle(weapon_data);
+    setWeaponDesignColor(color);
+    setWeaponLore(description);
+    setWeaponPrice(weapon_data);
+    setWeaponImage(weapon);
+    setPrimaryData(weapon, weapon_data);
+    setAncillaryData(weapon, weapon_data, projectile);
+
+    //#endregion
+
+    /**@type {WeaponReturnData} */
+    current_weapon = {
+        weapon: weapon,
+        weapon_data: weapon_data,
+        projectile: projectile,
+        color: color,
+        description: description,
+    }
+
+    return current_weapon;
+}
+
+/** @param {WeaponCSV} weapon_data */
+function setWeaponTitle(weapon_data) {
+    const name = weapon_data.name;
+    EL.ship_name_header.textContent = name;
+    return { name: name, header: EL.ship_name_header.textContent };
+}
+
+/** @param {Color} color */
+function setWeaponDesignColor(color) {
+    if (color.type == "Common")
+        EL.design_type.remove();
+    EL.design_type.dataset.className = color.type;
+    EL.design_type.style.setProperty('--data-class-color', color.hex);
+}
+
+/** @param {Description} description */
+function setWeaponLore(description) {
+    const parts = [description?.text1, description?.text2, description?.text3, description?.text4, description?.text5].filter(Boolean);
+    // let html = parts.map(t => t.replaceAll("\r\n", '<br/>')).join('<br/>');
+    let html = parts[0] + ((parts[1] != "" && parts[1] != undefined) ? "<div class='ship-class mt-2' style='font-size:10px;'>" + parts[1] + "</div>" : "")
+    EL.description.innerHTML = html;
+}
+
+/**@param {WeaponCSV} weapon_data */
+function setWeaponPrice(weapon_data) {
+    const price = (parseFloat(weapon_data["base value"]).toLocaleString('en-US', { style: 'currency', currency: 'EUR' }).slice(1));
+    setPrice(price);
+}
+
+/**@param {WeaponJson} weapon */
+function setWeaponImage(weapon) {
+    updateImgWeaponSource(EL.image, { weapon: weapon })
+    EL.image.parentElement.classList.remove(EL.image.parentElement.classList.values().find(s => s.includes("_")))
+    EL.image.parentElement.classList.add(`${firstNonEmpty(weapon.mountTypeOverride, weapon.type)[0].toUpperCase() + "_" + weapon.size[0].toUpperCase()}`)
+}
+
+/**@param {WeaponCSV} weapon_data */
+function getWeaponRefineDelay(weapon_data) {
+    return Math.max(
+        Number(weapon_data.chargeup) +
+        (Number(weapon_data["burst delay"]) * (Number(weapon_data["burst size"]) - 1)) +
+        Number(weapon_data.chargedown), 0.05)
+}
+
+/**@param {WeaponJson} weapon @param {WeaponCSV} weapon_data */
+function setPrimaryData(weapon, weapon_data) {
+
+    const refire_delay = getWeaponRefineDelay(weapon_data);
+
+    EL.primary_role.innerText = weapon_data.primaryRoleStr;
+    if (weapon.mountTypeOverride && weapon.type != weapon.mountTypeOverride) {
+        EL.stat_modifier_specification.innerText = `Counts as ${capitalize(weapon.type)} for stat modifiers`
+    } else {
+        EL.stat_modifier_specification.parentElement.remove();
+    }
+
+    EL.mount_type.innerText = capitalize(weapon.size ?? "") + ", " + capitalize(weapon.mountTypeOverride ?? weapon.type ?? "");
+
+    EL.op_cost.innerText = weapon_data.OPs;
+
+
+    EL.range.innerText = weapon_data.range;
+
+    EL.damage.innerText = (weapon_data["burst size"] == 1) ? weapon_data["damage/shot"].toString() : weapon_data["damage/shot"] + "x" + weapon_data["burst size"];
+    (weapon_data["burst size"] != 1) ? EL.burst_size.innerText = weapon_data["burst size"].toString() : EL.burst_size.parentElement.remove();
+    if (weapon_data.noDPSInTooltip == "") {
+        const dps = (weapon_data["damage/shot"] * weapon_data["burst size"]) / refire_delay;
+        EL.damage_second.innerText = firstNonEmpty(weapon_data["damage/second"], Number(dps.toFixed(0)));
+    } else {
+        EL.damage_second.parentElement.remove();
+    }
+
+    EL.emp_damage.innerText = weapon_data.emp;
+    if (!weapon_data.emp)
+        EL.emp_damage.parentElement.remove();
+
+    if (weapon_data["energy/shot"] != 0) {
+        const flux_sec = weapon_data["energy/shot"] * weapon_data["burst size"] / refire_delay;
+        EL.flux_second.innerText = firstNonEmpty(weapon_data["energy/second"], Number(flux_sec.toFixed(0)));
+        EL.flux_shot.innerText = weapon_data["energy/shot"].toString();
+        EL.flux_non_emp_damage.innerText = (weapon_data["energy/shot"] / weapon_data["damage/shot"]).toFixed(2);
+    } else {
+        EL.flux_second.parentElement.remove();
+        EL.flux_shot.parentElement.remove();
+        EL.flux_non_emp_damage.parentElement.remove();
+    }
+
+    if (weapon_data.customPrimary.includes("%s"))
+        EL.customPrimary.innerHTML = format(weapon_data.customPrimary, weapon_data.customPrimaryHL.split(" | "))
+    else {
+        let cusPrim = weapon_data.customPrimary;
+
+        weapon_data.customPrimaryHL.split(" | ").forEach(s => {
+            cusPrim = cusPrim.replace(s, "<span class='stat-yellow'>" + s + "</span>");
+        });
+
+        EL.customPrimary.innerHTML = cusPrim;
+    }
+
+
+}
+
+/**@param {WeaponJson} weapon @param {WeaponCSV} weapon_data @param {Projectile} projectile */
+function setAncillaryData(weapon, weapon_data, projectile) {
+    const refire_delay = getWeaponRefineDelay(weapon_data);
+
+    EL.damage_type.innerText = capitalize(weapon_data.type);
+    switch (weapon_data.type) {
+        case WeaponDamageType.ENERGY: EL.type_image.src = ICON_DAMAGE_TYPE_ENERGY; break;
+        case WeaponDamageType.FRAGMENTATION: EL.type_image.src = ICON_DAMAGE_TYPE_FRAGMENTATION; break;
+        case WeaponDamageType.HIGH_EXPLOSIVE: EL.type_image.src = ICON_DAMAGE_TYPE_HIGH_EXPLOSIVE; break;
+        case WeaponDamageType.KINETIC: EL.type_image.src = ICON_DAMAGE_TYPE_KINETIC; break;
+        case WeaponDamageType.OTHER: EL.type_image.src = ICON_DAMAGE_TYPE_OTHER; break;
+
+        default:
+            break;
+    }
+
+    EL.tracking.innerText = firstNonEmpty(weapon_data.trackingStr)
+    if (weapon_data.trackingStr == "")
+        EL.tracking.parentElement.remove();
+    EL.speed.innerText = firstNonEmpty(weapon_data.speedStr)
+    if (weapon_data.speedStr == "")
+        EL.speed.parentElement.remove();
+
+    function getTurnRate(turnRate) {
+        if (turnRate <= 0) return "Can't turn";
+        if (turnRate <= 5) return "Very Slow";
+        if (turnRate <= 15) return "Slow";
+        if (turnRate <= 25) return "Medium";
+        if (turnRate <= 35) return "Fast";
+        if (turnRate <= 50) return "Very Fast";
+        return "Excellent";
+    }
+
+    function getSpread(maxSpread) {
+        if (maxSpread <= 0) return "Perfect";
+        if (maxSpread <= 2) return "Excellent";
+        if (maxSpread <= 5) return "Good";
+        if (maxSpread <= 10) return "Medium";
+        if (maxSpread <= 15) return "Poor";
+        if (maxSpread <= 20) return "Very Poor";
+        return "Terrible";
+    }
+
+
+    if (projectile?.specClass == ProjectileSpecClass.missile) {
+        EL.accuracy.parentElement.remove();
+        EL.turn.parentElement.remove();
+
+        EL.hitpoints.innerText = weapon_data["proj hitpoints"]
+    } else { // ProjectileSpecClass.projectile
+        EL.hitpoints.parentElement.remove();
+
+        EL.accuracy.innerText = firstNonEmpty(weapon_data.accuracyStr, getSpread(weapon_data["max spread"]));
+        EL.turn.innerText = firstNonEmpty(weapon_data.turnRateStr, getTurnRate(weapon_data["turn rate"]));
+    }
+
+    if (weapon.type == WeaponTypes.Energy) {
+        EL.max_ammo_name.innerText = "Max charges";
+        EL.seconds_reload_name.innerText = "Seconds / recharge";
+        EL.reload_size_name.innerText = "Charges gained";
+    }
+    else if (weapon.type == WeaponTypes.Ballistic || weapon.type == WeaponTypes.Missile) {
+        EL.max_ammo_name.innerText = "Max ammo";
+        EL.seconds_reload_name.innerText = "Seconds / reload";
+        EL.reload_size_name.innerText = "Reload size";
+    }
+
+    if (weapon_data.ammo != "" && Number(weapon_data.ammo) != 0 && weapon_data["ammo/sec"] == 0)
+        if (weapon.type == WeaponTypes.Energy)
+            if (weapon_data["energy/shot"] != 0)
+                EL.no_recharge_ammo_display.innerText = "Limited ammo (" + weapon_data.ammo + ")";
+            else
+                EL.no_recharge_ammo_display.innerText = "No flux cost to fire, limited ammo (" + weapon_data.ammo + ")";
+        else if (weapon.type == WeaponTypes.Ballistic || weapon.type == WeaponTypes.Missile)
+            if (weapon_data["energy/shot"] != 0)
+                EL.no_recharge_ammo_display.innerText = "Limited ammo (" + weapon_data.ammo + ")";
+            else
+                EL.no_recharge_ammo_display.innerText = "No flux cost to fire, limited ammo (" + weapon_data.ammo + ")";
+        else;
+    else
+        EL.no_recharge_ammo_display.remove();
+
+    if (weapon_data.ammo != "" && Number(weapon_data.ammo) != 0 && weapon_data["ammo/sec"] != 0) {
+        EL.max_ammo.innerText = weapon_data.ammo;
+        EL.seconds_reload.innerText = Number((1.0 / weapon_data["ammo/sec"] * Number(weapon_data["reload size"])).toFixed(2)).toString();
+        EL.reload_size.innerText = firstNonEmpty(weapon_data["reload size"], 1);
+    } else {
+        EL.max_ammo.parentElement.remove();
+        EL.seconds_reload.parentElement.remove();
+        EL.reload_size.parentElement.remove();
+    }
+
+    EL.refire_delay.innerText = Number(refire_delay.toFixed(2)).toString();
+
+
+    if (weapon_data.customAncillary.includes("%s"))
+        EL.customAncillary.innerHTML = format(weapon_data.customAncillary, weapon_data.customAncillaryHL.split(" | "))
+    else {
+        let cusPrim = weapon_data.customAncillary;
+
+        weapon_data.customAncillaryHL.split(" | ").forEach(s => {
+            cusPrim = cusPrim.replace(s, "<span class='stat-yellow'>" + s + "</span>");
+        });
+
+        EL.customAncillary.innerHTML = cusPrim;
+    }
+
+
+}
+
+
+
+//#endregion
 
 //#endregion
 
@@ -1067,8 +1546,13 @@ function handleNoShareIcon() {
 }
 
 function handleNoLowerContent() {
-    document.querySelector(".lower-content").classList.add("d-none")
+    document.querySelector(".ship-lore").classList.add("d-none")
+    document.querySelector(".lower-content")?.classList?.add("d-none")
+    if (EL.stats_container?.style?.width) EL.stats_container.style.width = "100%"
+    EL.stats_container?.classList?.remove("me-4")
     EL.codex.style.height = "418px"
+    EL.item_view.style.height = "418px"
+    // EL.item_view.style.width = "min-content"
 }
 
 //#endregion
@@ -1089,6 +1573,9 @@ function handleNoLowerContent() {
  * }}
  */
 function showToaster(title, text, options = {}) {
+    if (searchParams.has("no_toaster"))
+        return;
+
     options = { ...{ img: "", duration: 5000, }, ...options };
     const toaster = document.createElement("div");
     toaster.classList.add("toaster")
@@ -1167,57 +1654,115 @@ window.showToaster = showToaster;
 //#region tests
 
 async function runUpdateCodexTest() {
-    const candidates = [];
+    testing = true;
 
-    for (const ship of globalSources.ships) {
-        if (ship.hullSize === "FIGHTER") continue;
-        const csv = globalSources.ship_data.find(s => s.id === ship.hullId);
-        if (!csv || csv.hints.includes("HIDE_IN_CODEX")) continue;
-
-        candidates.push({ type: 'ship', ship, csv });
-    }
-    for (const skin of globalSources.skins) {
-        if (skin.restoreToBaseHull) continue;
-        const base = globalSources.ships.find(s => s.hullId === skin.baseHullId);
-        if (!base || base.hullSize === "FIGHTER") continue;
-        const csv = globalSources.ship_data.find(s => s.id === skin.baseHullId);
-        if (!csv || csv.hints.includes("HIDE_IN_CODEX")) continue;
-
-        candidates.push({ type: 'skin', skin, base, csv });
-    }
 
     const toaster = showToaster("Running Checks...", "", { img: ICON_INFO_PATH, duration: 600_000 });
-
     let errorCount = 0;
 
-    for (let i = 0; i < candidates.length; i++) {
-        const s = candidates[i];
+    const IDs = [];
+
+    const shipCandidates = getShipCandidates("");
+    const stationCandidates = getStationCandidates("");
+    const weaponCandidates = getWeaponCandidates("");
+
+    const length = [
+        shipCandidates.length,
+        stationCandidates.length,
+        weaponCandidates.length
+    ].reduce((acc, curr) => acc + curr, 0) + 1
+    let curr = 1;
+
+    search_category = Categories.Ships;
+    for (let i = 0; i < shipCandidates.length; i++) {
+        const s = shipCandidates[i];
+        const ID = firstNonEmpty(s.skin?.skinHullId, s.csv.id);
         try {
-            const codex_ship = updateCodex(firstNonEmpty(s.skin?.skinHullId, s.csv.id), false)
+            /** @type {ShipReturnData} */
+            // @ts-ignore
+            const codex_ship = updateCodex(ID, false)
             updateImgShipSource(toaster.toaster.querySelector("img"), {
                 ["base"]: codex_ship.shipJson,
                 ["ship"]: codex_ship.shipJson,
                 ["skin"]: codex_ship.skin,
             })
             toaster.setText(
-                `[${i + 1}/${candidates.length + 1}]\n` +
+                `[${curr}/${length}]\n` +
                 codex_ship.hullHeader
             )
             await new Promise(resolve => setTimeout(resolve, 2))
         } catch (err) {
-            console.warn("Error for: " + firstNonEmpty(s.skin?.skinHullId, s.csv.id))
+            console.warn("Error for: " + ID)
             console.error(err)
             errorCount++;
         }
+        IDs.push(ID);
+        curr++;
+    }
+    IDs.push(Categories.Stations)
+    search_category = Categories.Stations;
+    for (let i = 0; i < stationCandidates.length; i++) {
+        const s = stationCandidates[i];
+        const ID = firstNonEmpty(s.skin?.skinHullId, s.csv.id);
+        try {
+            /** @type {ShipReturnData} */
+            // @ts-ignore
+            const codex_ship = updateCodex(ID, false)
+            updateImgShipSource(toaster.toaster.querySelector("img"), {
+                ["base"]: codex_ship.shipJson,
+                ["ship"]: codex_ship.shipJson,
+                ["skin"]: codex_ship.skin,
+            })
+            toaster.setText(
+                `[${curr}/${length}]\n` +
+                codex_ship.hullHeader
+            )
+            await new Promise(resolve => setTimeout(resolve, 2))
+        } catch (err) {
+            console.warn("Error for: " + ID)
+            console.error(err)
+            errorCount++;
+        }
+        IDs.push(ID);
+        curr++;
+    }
+    IDs.push(Categories.Weapons)
+    search_category = Categories.Weapons;
+    for (let i = 0; i < weaponCandidates.length; i++) {
+        const s = weaponCandidates[i];
+        if (!s.weapon) continue;
+        const ID = s.weapon.id;
+        try {
+            /** @type {WeaponReturnData} */
+            // @ts-ignore
+            const codex_ship = updateCodex(ID, false)
+            updateImgWeaponSource(toaster.toaster.querySelector("img"), {
+                weapon: s.weapon,
+                weapon_data: s.weapon_data
+            })
+            toaster.setText(
+                `[${curr}/${length}]\n` +
+                codex_ship.weapon_data.name
+            )
+            await new Promise(resolve => setTimeout(resolve, 2))
+        } catch (err) {
+            console.warn("Error for: " + ID)
+            console.error(err)
+            errorCount++;
+        }
+        IDs.push(ID);
+        curr++;
     }
 
     toaster.removeToaster();
     if (errorCount > 0) {
         showToaster("Found Errors", "Check log for more information.", { img: ICON_ERROR_PATH })
     } else {
-        showToaster("No Error Found", "", { img: ICON_INFO_PATH })
+        showToaster("No Error Found!", "Went through " + length + " items", { img: ICON_INFO_PATH })
     }
 
+    console.log(IDs.join("', '"))
+    testing = false;
 }
 
 //#endregion

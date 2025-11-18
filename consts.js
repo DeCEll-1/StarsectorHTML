@@ -2,7 +2,7 @@
 const REPO_NAME                           = "StarsectorHTML";
 const BASE_PATH                           = location.hostname === "127.0.0.1" ? "." : `/${REPO_NAME}`;
 const CODEX_ICON_FOLDER_PATH              = `${BASE_PATH}/Resources/Images/Codex`
-const { }                                 = "------------CODEX------------";
+const { }                                 = "CODEX---------------------------------------";
 const CODEX_ICON_ABILITIES                = `${CODEX_ICON_FOLDER_PATH}/abilities.png`
 const CODEX_ICON_COMMODITIES              = `${CODEX_ICON_FOLDER_PATH}/commodities.png`
 const CODEX_ICON_CUSTOM                   = `${CODEX_ICON_FOLDER_PATH}/custom.png`
@@ -32,9 +32,15 @@ const CODEX_ICON_SPECIAL_ITEMS            = `${CODEX_ICON_FOLDER_PATH}/special_i
 const CODEX_ICON_STARS_PLANETS            = `${CODEX_ICON_FOLDER_PATH}/stars_planets.png`
 const CODEX_ICON_STATIONS                 = `${CODEX_ICON_FOLDER_PATH}/stations.png`
 const CODEX_ICON_WEAPONS                  = `${CODEX_ICON_FOLDER_PATH}/weapons.png`
-const { }                                 = "------------ICONS------------";
+const { }                                 = "ICONS--------------------------------------";
 const ICON_FOLDER_PATH                    = `${BASE_PATH}/Resources/Images/Icons`
 const ICON_ERROR_PATH                     = `${ICON_FOLDER_PATH}/alert.png`
 const ICON_DOWNLOAD_PATH                  = `${ICON_FOLDER_PATH}/download.png`
 const ICON_INFO_PATH                      = `${ICON_FOLDER_PATH}/info.png`
 const ICON_CODEX_ARROW_UP                 = `${ICON_FOLDER_PATH}/arrow_up.png`
+const { }                                 = "WEAPON-ICONS-------------------------------";
+const ICON_DAMAGE_TYPE_ENERGY             = `${ICON_FOLDER_PATH}/damagetype_energy.png`
+const ICON_DAMAGE_TYPE_FRAGMENTATION      = `${ICON_FOLDER_PATH}/damagetype_fragmentation.png`
+const ICON_DAMAGE_TYPE_HIGH_EXPLOSIVE     = `${ICON_FOLDER_PATH}/damagetype_high_explosive.png`
+const ICON_DAMAGE_TYPE_KINETIC            = `${ICON_FOLDER_PATH}/damagetype_kinetic.png`
+const ICON_DAMAGE_TYPE_OTHER              = `${ICON_FOLDER_PATH}/damagetype_other.png`

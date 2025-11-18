@@ -20,6 +20,7 @@ $whitelist = @(
     "*.skin",
     "*.ship",
     "*.wpn",
+    "*.proj",
     "*.variant",
     "*.faction",
     "*.ps1"

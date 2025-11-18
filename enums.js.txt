@@ -1,5 +1,5 @@
-    // @ts-nocheck
-    // so the reason why this files extension is _ is that so js intellisense doesnt detect it, but the browser still runs the code here
+  // @ts-nocheck
+  // so the reason why this files extension is _ is that so js intellisense doesnt detect it, but the browser still runs the code here
 
 const Categories = {
     None     : "None",
@@ -16,13 +16,15 @@ const Mount = {
 
 const WeaponTypes = {
     Ballistic  : "BALLISTIC",
-    Energy     : "ENERGY",
     Missile    : "MISSILE",
+    Energy     : "ENERGY",
     Hybrid     : "HYBRID",
     Composite  : "COMPOSITE",
     Synergy    : "SYNERGY",
     Universal  : "UNIVERSAL",
+    BuiltIn    : "BUILT_IN",
     Decorative : "DECORATIVE",
+    System     : "SYSTEM",
 };
 
 const Size = {
@@ -38,3 +40,16 @@ const LocalStorageKeys = {
     last_selected_category : "last_selected_category",
     last_mod_selected      : "last_mod_selected",
 };
+
+const ProjectileSpecClass = {
+    projectile : "projectile",
+    missile    : "missile"
+}
+
+const WeaponDamageType = {
+    HIGH_EXPLOSIVE : "HIGH_EXPLOSIVE",
+    KINETIC        : "KINETIC",
+    ENERGY         : "ENERGY",
+    FRAGMENTATION  : "FRAGMENTATION",
+    OTHER          : "OTHER",
+}

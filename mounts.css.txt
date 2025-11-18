@@ -1,21 +1,22 @@
-.C_L::before{background:url('Resources/SVGs/WeaponSlots/SVG/C_L.svg') center/contain no-repeat;}
-.C_M::before{background:url('Resources/SVGs/WeaponSlots/SVG/C_M.svg') center/contain no-repeat;}
-.C_S::before{background:url('Resources/SVGs/WeaponSlots/SVG/C_S.svg') center/contain no-repeat;}
-.E_L::before{background:url('Resources/SVGs/WeaponSlots/SVG/E_L.svg') center/contain no-repeat;}
-.E_M::before{background:url('Resources/SVGs/WeaponSlots/SVG/E_M.svg') center/contain no-repeat;}
-.E_S::before{background:url('Resources/SVGs/WeaponSlots/SVG/E_S.svg') center/contain no-repeat;}
-.H_L::before{background:url('Resources/SVGs/WeaponSlots/SVG/H_L.svg') center/contain no-repeat;}
-.H_M::before{background:url('Resources/SVGs/WeaponSlots/SVG/H_M.svg') center/contain no-repeat;}
-.H_S::before{background:url('Resources/SVGs/WeaponSlots/SVG/H_S.svg') center/contain no-repeat;}
-.K_L::before{background:url('Resources/SVGs/WeaponSlots/SVG/K_L.svg') center/contain no-repeat;}
-.K_M::before{background:url('Resources/SVGs/WeaponSlots/SVG/K_M.svg') center/contain no-repeat;}
-.K_S::before{background:url('Resources/SVGs/WeaponSlots/SVG/K_S.svg') center/contain no-repeat;}
-.M_L::before{background:url('Resources/SVGs/WeaponSlots/SVG/M_L.svg') center/contain no-repeat;}
-.M_M::before{background:url('Resources/SVGs/WeaponSlots/SVG/M_M.svg') center/contain no-repeat;}
-.M_S::before{background:url('Resources/SVGs/WeaponSlots/SVG/M_S.svg') center/contain no-repeat;}
-.S_L::before{background:url('Resources/SVGs/WeaponSlots/SVG/S_L.svg') center/contain no-repeat;}
-.S_M::before{background:url('Resources/SVGs/WeaponSlots/SVG/S_M.svg') center/contain no-repeat;}
-.S_S::before{background:url('Resources/SVGs/WeaponSlots/SVG/S_S.svg') center/contain no-repeat;}
-.U_L::before{background:url('Resources/SVGs/WeaponSlots/SVG/U_L.svg') center/contain no-repeat;}
-.U_M::before{background:url('Resources/SVGs/WeaponSlots/SVG/U_M.svg') center/contain no-repeat;}
-.U_S::before{background:url('Resources/SVGs/WeaponSlots/SVG/U_S.svg') center/contain no-repeat;}
+.C_L::before{background-image:url('Resources/SVGs/WeaponSlots/SVG/C_L copy.svg')}
+.C_M::before{background-image:url('Resources/SVGs/WeaponSlots/SVG/C_M copy.svg')}
+.C_S::before{background-image:url('Resources/SVGs/WeaponSlots/SVG/C_S copy.svg')}
+.E_L::before{background-image:url('Resources/SVGs/WeaponSlots/SVG/E_L copy.svg')}
+.E_M::before{background-image:url('Resources/SVGs/WeaponSlots/SVG/E_M copy.svg')}
+.E_S::before{background-image:url('Resources/SVGs/WeaponSlots/SVG/E_S copy.svg')}
+.H_L::before{background-image:url('Resources/SVGs/WeaponSlots/SVG/H_L copy.svg')}
+.H_M::before{background-image:url('Resources/SVGs/WeaponSlots/SVG/H_M copy.svg')}
+.H_S::before{background-image:url('Resources/SVGs/WeaponSlots/SVG/H_S copy.svg')}
+.B_L::before{background-image:url('Resources/SVGs/WeaponSlots/SVG/K_L copy.svg')}
+.B_M::before{background-image:url('Resources/SVGs/WeaponSlots/SVG/K_M copy.svg')}
+.B_S::before{background-image:url('Resources/SVGs/WeaponSlots/SVG/K_S copy.svg')}
+.M_L::before{background-image:url('Resources/SVGs/WeaponSlots/SVG/M_L copy.svg')}
+.M_M::before{background-image:url('Resources/SVGs/WeaponSlots/SVG/M_M copy.svg')}
+.M_S::before{background-image:url('Resources/SVGs/WeaponSlots/SVG/M_S copy.svg')}
+.S_L::before{background-image:url('Resources/SVGs/WeaponSlots/SVG/S_L copy.svg')}
+.S_M::before{background-image:url('Resources/SVGs/WeaponSlots/SVG/S_M copy.svg')}
+.S_S::before{background-image:url('Resources/SVGs/WeaponSlots/SVG/S_S copy.svg')}
+.U_L::before{background-image:url('Resources/SVGs/WeaponSlots/SVG/U_L copy.svg')}
+.U_M::before{background-image:url('Resources/SVGs/WeaponSlots/SVG/U_M copy.svg')}
+.U_S::before{background-image:url('Resources/SVGs/WeaponSlots/SVG/U_S copy.svg')}
+.bg-i-size-search-list::before{background-size: 85%                         }
