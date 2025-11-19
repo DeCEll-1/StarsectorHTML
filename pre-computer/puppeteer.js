@@ -106,6 +106,23 @@ const sf = 1.5;
         if (!htmlExists) {
             console.log(`\t\t\twriting html to file …`);
             const outPathHtml = path.join(OUTPUT_DIR, `${id}_${category}.html`);
+
+            function truncateSmart(text, max = 250) {
+                if (text.length <= max) return text;
+
+                let cut = text.lastIndexOf('. ', max);
+                if (cut === -1) cut = text.lastIndexOf('! ', max);
+                if (cut === -1) cut = text.lastIndexOf('? ', max);
+                if (cut === -1) cut = text.lastIndexOf('.\n', max);
+
+                if (cut === -1) cut = text.lastIndexOf(', ', max);
+                if (cut === -1) cut = text.lastIndexOf(' ', max);
+
+                if (cut === -1) cut = max;
+
+                return text.slice(0, cut + 1).trim() + '…';
+            }
+
             function writeShipHTML(category) {
                 const lore = ((entry.skin?.descriptionPrefix ?? "") + "\n\n" + entry.description?.text1?.split("\r\n")[0]);
                 fs.writeFileSync(outPathHtml,
@@ -119,7 +136,7 @@ const sf = 1.5;
                         ).replaceAll("{SEARCH_TEXT}",
                             firstNonEmpty(entry.skin?.hullName, entry.csv.name)
                         ).replaceAll("{DESCRIPTION}",
-                            (lore.length > 150) ? lore.substring(0, lore.indexOf(".", 150) + 1) : lore
+                            truncateSmart(lore ?? "")
                         ).replaceAll("{CATEGORY}",
                             category
                         )
@@ -139,7 +156,7 @@ const sf = 1.5;
                         ).replaceAll("{SEARCH_TEXT}",
                             entry.weapon_data.name
                         ).replaceAll("{DESCRIPTION}",
-                            (lore.length > 150) ? lore.substring(0, lore.indexOf(".", 150) + 1) : lore
+                            truncateSmart(lore ?? "")
                         ).replaceAll("{CATEGORY}",
                             "Weapons"
                         )

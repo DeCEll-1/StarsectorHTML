@@ -339,6 +339,7 @@ function setSelectedMod(selectedModId) {
     }
 
     // @ts-ignore
+    // @ts-ignore
     let target = getModLI();
     if (!highlightTarget()) {
         setTimeout(() => {
@@ -357,6 +358,7 @@ function setSelectedMod(selectedModId) {
         updateSearch();
 }
 
+// @ts-ignore
 // @ts-ignore
 function updateModSearch(filter = '') {
     const ul = EL.search_bar_mod_list_ul;
@@ -420,13 +422,13 @@ function updateSearch(filter = '') {
     createListItem(ul, {
         onClick: () => {
             changeSearchCategory(Categories.None);
-            updateSearch();
+            updateSearch(filter);
         },
         title: "...",
         img: ICON_CODEX_ARROW_UP
     })
     switch (search_category) {
-        case Categories.None: renderRoot(ul); break;
+        case Categories.None: renderRoot(ul, filter); break;
         case Categories.Ships: renderShipList(ul, filter); break;
         case Categories.Stations: renderStationList(ul, filter); break;
         case Categories.Weapons: renderWeaponList(ul, filter); break;
@@ -436,13 +438,13 @@ function updateSearch(filter = '') {
     }
 }
 
-function renderRoot(/** @type HTMLElement */ul) {
+function renderRoot(/** @type HTMLElement */ul, filter) {
     ul.innerHTML = ""; // kind of a nuclear option, but it works
     let shipsCat = Categories.Ships;
     createListItem(ul, {
         onClick: () => {
             changeSearchCategory(shipsCat);
-            updateSearch();
+            updateSearch(filter);
         },
         title: shipsCat,
         img: CODEX_ICON_SHIPS
@@ -452,7 +454,7 @@ function renderRoot(/** @type HTMLElement */ul) {
     createListItem(ul, {
         onClick: () => {
             changeSearchCategory(stationsCat);
-            updateSearch();
+            updateSearch(filter);
         },
         title: stationsCat,
         img: CODEX_ICON_STATIONS
@@ -462,7 +464,7 @@ function renderRoot(/** @type HTMLElement */ul) {
     createListItem(ul, {
         onClick: () => {
             changeSearchCategory(weaponsCat);
-            updateSearch();
+            updateSearch(filter);
         },
         title: weaponsCat,
         img: CODEX_ICON_WEAPONS
@@ -889,6 +891,7 @@ function updateShip(selectedHull, log) {
 
     const weapons = globalSources.weapon_data.filter(w => {
         // @ts-ignore
+        // @ts-ignore
         const tags = w.tags.trim().toLowerCase().split(",").map(s => s.trim());
 
         return builtInWeapons.includes(w.id)
@@ -1006,6 +1009,7 @@ function updateShip(selectedHull, log) {
     //#endregion
 }
 
+// @ts-ignore
 // @ts-ignore
 function setShipHeader(ship, csv, skin) {
     const name = firstNonEmpty(skin?.hullName, csv.name);
@@ -1178,6 +1182,7 @@ function renderShipBuiltInArmaments(
 
     EL.armaments_list.innerHTML = "";
     // @ts-ignore
+    // @ts-ignore
     for (const [key, item] of Object.entries(counts)) {
         let li;
         if (item.type == "WEAPON")
@@ -1331,17 +1336,27 @@ function setWeaponImage(weapon) {
 }
 
 /**@param {WeaponCSV} weapon_data */
-function getWeaponRefineDelay(weapon_data) {
-    return Math.max(
-        Number(weapon_data.chargeup) +
-        (Number(weapon_data["burst delay"]) * (Number(weapon_data["burst size"]) - 1)) +
-        Number(weapon_data.chargedown), 0.05)
+function getWeaponRefineDelay(weapon_data, isBeam = false) {
+    return (!isBeam) ?
+        Math.max(
+            Number(weapon_data.chargeup) +
+            (Number(weapon_data["burst delay"]) * (Number(weapon_data["burst size"]) - 1)) +
+            Number(weapon_data.chargedown), 0.05)
+        :
+        Math.max(
+            ((((Number(weapon_data["chargeup"]) +
+                Number(weapon_data["chargedown"])) +
+                Number(weapon_data["burst delay"]))) +
+                Number(weapon_data["burst size"])),
+            0.05
+        )
 }
 
 /**@param {WeaponJson} weapon @param {WeaponCSV} weapon_data */
 function setPrimaryData(weapon, weapon_data) {
-
-    const refire_delay = getWeaponRefineDelay(weapon_data);
+    // @ts-ignore
+    const isBeam = (weapon_data["beam speed"] != "" && weapon_data["beam speed"] != 0)
+    const refire_delay = getWeaponRefineDelay(weapon_data, isBeam);
 
     EL.primary_role.innerText = weapon_data.primaryRoleStr;
     if (weapon.mountTypeOverride && weapon.type != weapon.mountTypeOverride) {
@@ -1357,24 +1372,41 @@ function setPrimaryData(weapon, weapon_data) {
 
     EL.range.innerText = weapon_data.range;
 
-    EL.damage.innerText = (weapon_data["burst size"] == 1) ? weapon_data["damage/shot"].toString() : weapon_data["damage/shot"] + "x" + weapon_data["burst size"];
-    (weapon_data["burst size"] != 1) ? EL.burst_size.innerText = weapon_data["burst size"].toString() : EL.burst_size.parentElement.remove();
-    if (weapon_data.noDPSInTooltip == "") {
-        const dps = (weapon_data["damage/shot"] * weapon_data["burst size"]) / refire_delay;
-        EL.damage_second.innerText = firstNonEmpty(weapon_data["damage/second"], Number(dps.toFixed(0)));
+    const beamDps = Number(((Number(weapon_data.chargedown) + Number(weapon_data.chargeup)) * (Number(weapon_data["damage/second"]) / 3.0)) + Number(weapon_data["damage/second"]))
+    if (isBeam) {
+        EL.damage.innerText = Number(beamDps.toFixed(0)).toString()
+        EL.damage_second.innerText = Number((beamDps / refire_delay).toFixed(0)).toString()
+        // @ts-ignore
+        EL.emp_damage.innerText = weapon_data.emp * (Number(weapon_data.chargedown) + Number(weapon_data.chargeup));
+
     } else {
-        EL.damage_second.parentElement.remove();
+        EL.damage.innerText = (weapon_data["burst size"] == 1) ? weapon_data["damage/shot"].toString() : weapon_data["damage/shot"] + "x" + weapon_data["burst size"];
+        (weapon_data["burst size"] != 1) ? EL.burst_size.innerText = weapon_data["burst size"].toString() : EL.burst_size.parentElement.remove();
+        if (weapon_data.noDPSInTooltip == "") {
+            const dps = (weapon_data["damage/shot"] * weapon_data["burst size"]) / refire_delay;
+            EL.damage_second.innerText = firstNonEmpty(weapon_data["damage/second"], Number(dps.toFixed(0)));
+        } else {
+            EL.damage_second.parentElement.remove();
+        }
+        EL.emp_damage.innerText = weapon_data.emp;
     }
 
-    EL.emp_damage.innerText = weapon_data.emp;
     if (!weapon_data.emp)
         EL.emp_damage.parentElement.remove();
 
-    if (weapon_data["energy/shot"] != 0) {
-        const flux_sec = weapon_data["energy/shot"] * weapon_data["burst size"] / refire_delay;
-        EL.flux_second.innerText = firstNonEmpty(weapon_data["energy/second"], Number(flux_sec.toFixed(0)));
-        EL.flux_shot.innerText = weapon_data["energy/shot"].toString();
-        EL.flux_non_emp_damage.innerText = (weapon_data["energy/shot"] / weapon_data["damage/shot"]).toFixed(2);
+    if (weapon_data["energy/shot"] != 0 || weapon_data["energy/second"] != 0) {
+        if (isBeam) {
+            EL.flux_shot.parentElement.remove();
+            const flux_sec = ((Number(weapon_data.chargeup) * Number(weapon_data["energy/second"]) + Number(weapon_data["energy/second"])) / refire_delay);
+            EL.flux_second.innerText = Number(flux_sec.toFixed(0)).toString();
+            EL.flux_non_emp_damage.innerText = (flux_sec / (beamDps / refire_delay)).toFixed(0);
+        }
+        else {
+            const flux_sec = weapon_data["energy/shot"] * weapon_data["burst size"] / refire_delay;
+            EL.flux_second.innerText = firstNonEmpty(weapon_data["energy/second"], Number(flux_sec.toFixed(0)));
+            EL.flux_shot.innerText = weapon_data["energy/shot"].toString();
+            EL.flux_non_emp_damage.innerText = (weapon_data["energy/shot"] / weapon_data["damage/shot"]).toFixed(2);
+        }
     } else {
         EL.flux_second.parentElement.remove();
         EL.flux_shot.parentElement.remove();
@@ -1398,7 +1430,9 @@ function setPrimaryData(weapon, weapon_data) {
 
 /**@param {WeaponJson} weapon @param {WeaponCSV} weapon_data @param {Projectile} projectile */
 function setAncillaryData(weapon, weapon_data, projectile) {
-    const refire_delay = getWeaponRefineDelay(weapon_data);
+    // @ts-ignore
+    const isBeam = (weapon_data["beam speed"] != "" && weapon_data["beam speed"] != 0)
+    const refire_delay = getWeaponRefineDelay(weapon_data, isBeam);
 
     EL.damage_type.innerText = capitalize(weapon_data.type);
     switch (weapon_data.type) {
@@ -1488,6 +1522,10 @@ function setAncillaryData(weapon, weapon_data, projectile) {
         EL.reload_size.parentElement.remove();
     }
 
+    if (weapon_data["burst size"] != 1 && weapon_data["burst size"] != 0)
+        EL.burst_size.innerText = weapon_data["burst size"].toString();
+    else
+        EL.burst_size.parentElement.remove();
     EL.refire_delay.innerText = Number(refire_delay.toFixed(2)).toString();
 
 
