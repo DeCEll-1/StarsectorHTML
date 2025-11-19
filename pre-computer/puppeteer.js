@@ -125,6 +125,7 @@ const sf = 1.5;
 
             function writeShipHTML(category) {
                 const lore = ((entry.skin?.descriptionPrefix ?? "") + "\n\n" + entry.description?.text1?.split("\r\n")[0]);
+                const loreStr = truncateSmart(lore ?? "")?.replaceAll("'", "&#39;");
                 fs.writeFileSync(outPathHtml,
                     template
                         .replaceAll("{TITLE}",
@@ -136,7 +137,7 @@ const sf = 1.5;
                         ).replaceAll("{SEARCH_TEXT}",
                             firstNonEmpty(entry.skin?.hullName, entry.csv.name)
                         ).replaceAll("{DESCRIPTION}",
-                            truncateSmart(lore ?? "")
+                            loreStr
                         ).replaceAll("{CATEGORY}",
                             category
                         )
@@ -145,6 +146,7 @@ const sf = 1.5;
 
             function writeWeaponHTML() {
                 const lore = entry.description?.text1?.split("\r\n")[0];
+                const loreStr = truncateSmart(lore ?? "")?.replaceAll("'", "&#39;");
                 fs.writeFileSync(outPathHtml,
                     template
                         .replaceAll("{TITLE}",
@@ -156,7 +158,7 @@ const sf = 1.5;
                         ).replaceAll("{SEARCH_TEXT}",
                             entry.weapon_data.name
                         ).replaceAll("{DESCRIPTION}",
-                            truncateSmart(lore ?? "")
+                            loreStr
                         ).replaceAll("{CATEGORY}",
                             "Weapons"
                         )
