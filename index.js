@@ -1318,7 +1318,7 @@ function setWeaponDesignColor(color) {
 function setWeaponLore(description) {
     const parts = [description?.text1, description?.text2, description?.text3, description?.text4, description?.text5].filter(Boolean);
     // let html = parts.map(t => t.replaceAll("\r\n", '<br/>')).join('<br/>');
-    let html = parts[0] + ((parts[1] != "" && parts[1] != undefined) ? "<div class='ship-class mt-2' style='font-size:10px;'>" + parts[1] + "</div>" : "")
+    let html = parts[0].replaceAll("\r\n", '<br/>') + ((parts[1] != "" && parts[1] != undefined) ? "<div class='ship-class mt-2' style='font-size:10px;'>" + parts[1] + "</div>" : "")
     EL.description.innerHTML = html;
 }
 
