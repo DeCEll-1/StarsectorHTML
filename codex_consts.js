@@ -309,10 +309,16 @@ const WEAPON_HTML =
                                             <li>&nbsp;</li>
                                             <li>Range<span id="range">0</span></li>
                                             <li>Damage<span id="damage">0</span></li>
-                                            <li>Damage / second<span id="damage_second">0</span></li>
+                                            <li>
+                                                <span id="damage_second_name" no-color>Damage / second</span>
+                                                <span id="damage_second">0</span>
+                                            </li>
                                             <li>EMP damage<span id="emp_damage">0</span></li>
                                             <li>&nbsp;</li>
-                                            <li>Flux / second<span id="flux_second">0</span></li>
+                                            <li>
+                                                <span id="flux_second_name" no-color>Flux / second</span>
+                                                <span id="flux_second">0</span>
+                                            </li>
                                             <li>Flux / shot<span id="flux_shot">0</span></li>
                                             <li>Flux / non-EMP damage<span id="flux_non_emp_damage">0</span></li>
                                         </ul>

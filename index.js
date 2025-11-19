@@ -53,7 +53,8 @@ function updateEL() {
         "damage_type", "tracking", "turn", "speed", "accuracy", "seconds_reload", "max_ammo",
         "reload_size", "refire_delay", "type_image",
         "customPrimary", "customAncillary", "hitpoints", "seconds_reload_name", "max_ammo_name",
-        "reload_size_name", "no_recharge_ammo_display", "burst_size", "stats_container"
+        "reload_size_name", "no_recharge_ammo_display", "burst_size", "stats_container",
+        "damage_second_name", "flux_second_name"
 
     ];
     // @ts-ignore
@@ -291,6 +292,7 @@ function handleParams() {
     if (searchParams.has("no_lower_content"))
         handleNoLowerContent()
 }
+// @ts-ignore
 window.handleParams = handleParams;
 //#endregion
 
@@ -1372,19 +1374,32 @@ function setPrimaryData(weapon, weapon_data) {
 
     EL.range.innerText = weapon_data.range;
 
-    const beamDps = Number(((Number(weapon_data.chargedown) + Number(weapon_data.chargeup)) * (Number(weapon_data["damage/second"]) / 3.0)) + Number(weapon_data["damage/second"]))
+    const burstDamage = (isBeam) ? Number(weapon_data["damage/second"]) * (Number(weapon_data["burst size"]) + ((Number(weapon_data.chargeup) + Number(weapon_data.chargedown)) * (1.0 / 3.0)))
+        : weapon_data["damage/shot"]
+    const burstFlux = Number(weapon_data["energy/second"]) * (Number(weapon_data["chargeup"]) + Number(weapon_data["burst size"]))
+    const sum = (Number(weapon_data.chargeup) + Number(weapon_data.chargedown) + Number(weapon_data["burst size"]) + Number(weapon_data["burst delay"]));
+    const beamDps = (isBeam) ? burstDamage / sum
+        : (weapon_data["damage/shot"] * weapon_data["burst size"]) / refire_delay
+
+    let sustainedDamage = burstDamage * Number(weapon_data["ammo/sec"]);
+    sustainedDamage = (sustainedDamage != 0) ? sustainedDamage : 9999999999;
+    if (beamDps > sustainedDamage) {
+        EL.damage_second_name.innerText = "Damage / second (sustained)"
+        EL.flux_second_name.innerText = "Flux / second (sustained)"
+    }
+
     if (isBeam) {
-        EL.damage.innerText = Number(beamDps.toFixed(0)).toString()
-        EL.damage_second.innerText = Number((beamDps / refire_delay).toFixed(0)).toString()
+        EL.damage.innerText = Number(burstDamage.toFixed(0)).toString()
+        EL.damage_second.innerText = Number(beamDps.toFixed(0)).toString() + ((beamDps > sustainedDamage) ? " (" + Number(sustainedDamage.toFixed(0)).toString() + ")" : "")
         // @ts-ignore
         EL.emp_damage.innerText = weapon_data.emp * (Number(weapon_data.chargedown) + Number(weapon_data.chargeup));
 
     } else {
         EL.damage.innerText = (weapon_data["burst size"] == 1) ? weapon_data["damage/shot"].toString() : weapon_data["damage/shot"] + "x" + weapon_data["burst size"];
-        (weapon_data["burst size"] != 1) ? EL.burst_size.innerText = weapon_data["burst size"].toString() : EL.burst_size.parentElement.remove();
+        (weapon_data["burst size"] > 1) ? EL.burst_size.innerText = weapon_data["burst size"].toString() : EL.burst_size.parentElement.remove();
         if (weapon_data.noDPSInTooltip == "") {
-            const dps = (weapon_data["damage/shot"] * weapon_data["burst size"]) / refire_delay;
-            EL.damage_second.innerText = firstNonEmpty(weapon_data["damage/second"], Number(dps.toFixed(0)));
+            EL.damage_second.innerText = Number(beamDps.toFixed(0)).toString() + ((beamDps > sustainedDamage) ? " (" + Number(sustainedDamage.toFixed(0)).toString() + ")" : "")
+            // EL.damage_second.innerText = firstNonEmpty(weapon_data["damage/second"], Number(beamDps.toFixed(0)));
         } else {
             EL.damage_second.parentElement.remove();
         }
@@ -1397,13 +1412,21 @@ function setPrimaryData(weapon, weapon_data) {
     if (weapon_data["energy/shot"] != 0 || weapon_data["energy/second"] != 0) {
         if (isBeam) {
             EL.flux_shot.parentElement.remove();
-            const flux_sec = ((Number(weapon_data.chargeup) * Number(weapon_data["energy/second"]) + Number(weapon_data["energy/second"])) / refire_delay);
-            EL.flux_second.innerText = Number(flux_sec.toFixed(0)).toString();
-            EL.flux_non_emp_damage.innerText = (flux_sec / (beamDps / refire_delay)).toFixed(0);
+            const flux_sec = burstFlux / sum
+            const flux_dam = flux_sec / beamDps
+            const sustainedFlux = burstDamage * Number(weapon_data["ammo/sec"]);
+
+            EL.flux_second.innerText = Number(flux_sec.toFixed(0)).toString() + "" + ((beamDps > burstDamage) ? " (" + Number(burstFlux * Number(weapon_data["ammo/sec"])).toFixed(0).toString() + ")" : "");
+            EL.flux_non_emp_damage.innerText = flux_dam.toFixed(1);
         }
         else {
             const flux_sec = weapon_data["energy/shot"] * weapon_data["burst size"] / refire_delay;
-            EL.flux_second.innerText = firstNonEmpty(weapon_data["energy/second"], Number(flux_sec.toFixed(0)));
+            if (weapon_data.noDPSInTooltip == "")
+                EL.flux_second.innerText = Number(flux_sec.toFixed(0)).toString() + ((beamDps > sustainedDamage) ? " (" + Number((Number(weapon_data["energy/shot"]) * Number(weapon_data["ammo/sec"])).toFixed(0)).toString() + ")" : "");
+            else
+                // EL.flux_second.innerText = firstNonEmpty(weapon_data["energy/second"], Number(flux_sec.toFixed(0)));
+                EL.flux_second.parentElement.remove();
+
             EL.flux_shot.innerText = weapon_data["energy/shot"].toString();
             EL.flux_non_emp_damage.innerText = (weapon_data["energy/shot"] / weapon_data["damage/shot"]).toFixed(2);
         }
@@ -1522,7 +1545,7 @@ function setAncillaryData(weapon, weapon_data, projectile) {
         EL.reload_size.parentElement.remove();
     }
 
-    if (weapon_data["burst size"] != 1 && weapon_data["burst size"] != 0)
+    if (weapon_data["burst size"] > 1)
         EL.burst_size.innerText = weapon_data["burst size"].toString();
     else
         EL.burst_size.parentElement.remove();

@@ -619,6 +619,8 @@ declare global {
         "type_image"                  : HTMLImageElement;
         "burst_size"                  : HTMLElement;
         "stats_container"             : HTMLElement;
+        "damage_second_name"          : HTMLElement;
+        "flux_second_name"            : HTMLElement;
     }
 
     export enum ProjectileSpecClass {
