@@ -166,7 +166,7 @@ const SHIP_HTML =
         <div class="ship-image center center-grid-img">
             <img id="image" src="">
             <span class="share codex-border" onclick="
-                navigator.clipboard.writeText(\`https:\/\/decell-1.github.io/StarsectorHTMLEmbeds/AutoGen/Embeds/\${current_ship.selectedHull}\`);
+                navigator.clipboard.writeText(\`https:\/\/decell-1.github.io/StarsectorHTMLEmbeds/AutoGen/Embeds/\${current_ship.selectedHull}_\${search_category}\`);
                 showToaster(
 'Copied to clipboard!',
 'Ship link has been copied to the clipboard.',
