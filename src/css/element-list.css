@@ -1,0 +1,81 @@
+/* this is here so that the mod lists right border goes below the element list, so it looks better */
+.element-list {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+  max-height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.element-list .header {
+  position: sticky;
+  top: 0;
+}
+
+.element-list ul {
+  overflow-y: auto;
+  /* Moves the scrollbar exclusively to the list */
+  flex-grow: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.element-list ul li button {
+  margin-top: 4px;
+  /* margin-left: 8px; */
+  display: flex;
+  transition:
+    background-color 0.5s ease,
+    outline 0.5s ease-in-out;
+  width: 100%;
+  cursor: default;
+  user-select: none;
+  /* border-radius: 9px; */
+  background-color: transparent;
+  border: none;
+  text-align: left;
+}
+
+.element-list ul li button:focus-visible {
+  outline: 1px solid var(--ui-blue-light);
+  outline-offset: -1px;
+}
+
+.element-list ul li button:hover,
+.element-list ul li button:focus-visible {
+  background-color: var(--ui-blue-dark);
+}
+
+.element-list ul li button div:has(> img) {
+  width: 48px;
+  height: 48px;
+  text-align: center;
+  align-items: center;
+  display: flex;
+}
+
+.element-list ul li button>div:nth-child(2) {
+  /* max-width: 73%; */
+  width: 100%;
+  margin-left: 4px;
+}
+
+.element-list ul li button div div:first-child {
+  margin-top: 4px;
+  color: #a9dcfd;
+  margin-bottom: 4px;
+}
+
+.element-list ul li button div div:nth-child(2) {
+  color: #989898;
+  max-width: 93%;
+}
+
+.element-list ul li button div img {
+  margin: auto;
+  max-width: 40px;
+  max-height: 40px;
+}

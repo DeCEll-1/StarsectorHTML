@@ -1,0 +1,160 @@
+/* #region fonts */
+@font-face {
+    font-family: "Orbitron";
+    src: url("/Fonts/Orbitron/Orbitron-VariableFont_wght.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: VictorMono;
+    src: url("/Fonts/Victor_Mono/static/VictorMono-ExtraLight.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+    font-weight: 100;
+}
+
+.font-victor-mono {
+    font-family: VictorMono;
+}
+
+.font-orbitron {
+    font-family: "Orbitron";
+}
+
+/* #endregion */
+
+:root {
+    --stat-yellow: #FFDD00;
+    --stat-fuel: #FC7C19;
+    --stat-crew: #00FFC0;
+    --stat-dp: #40D0DF;
+    --stat-white: #F0FFF0;
+    --stat-cargo: #FFFFBF;
+    --stat-debuff: #FD6300;
+    --stat-black: #000000;
+    --stat-gray: #757575;
+    --ui-background: #000;
+    --ui-blue-dark: #10303A;
+    --ui-blue-light: #E0FFEF;
+    --ui-blue-dark-light: #15414D;
+    --ui-scanline-bg: black;
+    --ui-scanline-fg: #051316;
+    --brighten-dark-text:
+        0 0 0.5px currentColor,
+        0 0 0.5px currentColor;
+
+
+    /* TODO: this, is probably very stupid, its not responsive and wont work on a lot of devices, fix it later */
+    --mod-list-width: 196px;
+    --search-results-width: 196px;
+    --main-view-width: 896px;
+}
+
+*::after,
+*::before {
+    user-select: text;
+    /* Standard */
+    -webkit-user-select: text;
+    /* Chrome/Safari */
+    -moz-user-select: text;
+    /* Firefox */
+    -ms-user-select: text;
+    /* IE/Edge */
+}
+
+/* #region element overrides */
+body {
+    padding: 0px;
+    margin: 0px;
+    background-color: var(--ui-background);
+    color: #FFF;
+    /* text-shadow: var(--brighten-dark-text); */
+}
+
+body,
+td {
+    font-size: 10px;
+}
+
+ul {
+    margin: 0;
+    padding: 0;
+}
+
+/* #endregion */
+
+/* #region borders */
+.codex-border {
+    border: 0px solid transparent;
+    border-width: 8px;
+    border-image-source: url("/Images/Border2NoCenter.png");
+    border-image-slice: 32 fill;
+    border-image-repeat: repeat;
+
+    background-image: repeating-linear-gradient(0deg, var(--ui-scanline-bg) 0px 1px, var(--ui-scanline-fg) 1px 2px);
+}
+
+/* Removes the left border and turns the top-left/bottom-left into flat edges */
+.codex-border-open-left {
+    border-left-width: 0px;
+    border-image-width: 8px 8px 8px 0px;
+}
+
+/* Removes the right border and turns the top-right/bottom-right into flat edges */
+.codex-border-open-right {
+    border-right-width: 0px;
+    border-image-width: 8px 0px 8px 8px;
+}
+
+/* #endregion */
+
+/* #region headerslop */
+.header,
+.header-before::before {
+    width: 100%;
+    align-self: flex-start;
+    background-color: var(--ui-blue-dark);
+    text-align: center;
+}
+
+.header,
+.stats-header,
+.ship-header {
+    font-weight: lighter;
+    justify-content: space-between;
+    padding: 1px 0;
+    /* color: #A6D8F9; */
+}
+
+/* #endregion */
+
+.element-highlight {
+    background-color: var(--ui-blue-dark-light) !important;
+}
+/* #region listslop */
+
+ul {
+    margin: 0px;
+    padding: 0px;
+    list-style-type: none;
+}
+
+td ul li {
+    display: inline;
+}
+
+td ul li::after {
+    content: ", ";
+}
+
+td ul li:last-child::after {
+    content: "";
+}
+
+:is(.combat-content, .weapon-stats) ul li span:last-child:not([no-color]) {
+    color: #FFDD00 !important;
+}
+
+/* #endregion */
+

@@ -1,20 +1,20 @@
-/Resources/GameSources/csvs/*
+/public/GameSources/csvs/*
 
 
-/Resources/GameSources/mods/*
+/public/GameSources/mods/*
 
-!/Resources/GameSources/mods/
+!/public/GameSources/mods/
 
-!/Resources/GameSources/mods/ArthrsShipsNShit/
-!/Resources/GameSources/mods/starsector-core/
-!/Resources/GameSources/mods/VayraMerged/
-!/Resources/GameSources/mods/Wondrous-Weapons/
-!/Resources/GameSources/mods/Survey Corps/
-!/Resources/GameSources/mods/Strike Craft Expansion/
-!/Resources/GameSources/mods/Ship and Weapon Pack/
-!/Resources/GameSources/mods/random weapon collection/
-!/Resources/GameSources/mods/Secrets of the Frontier 0.15.1/
-!/Resources/GameSources/mods/Nes's SAW/
+!/public/GameSources/mods/ArthrsShipsNShit/
+!/public/GameSources/mods/starsector-core/
+!/public/GameSources/mods/VayraMerged/
+!/public/GameSources/mods/Wondrous-Weapons/
+!/public/GameSources/mods/Survey Corps/
+!/public/GameSources/mods/Strike Craft Expansion/
+!/public/GameSources/mods/Ship and Weapon Pack/
+!/public/GameSources/mods/random weapon collection/
+!/public/GameSources/mods/Secrets of the Frontier 0.15.1/
+!/public/GameSources/mods/Nes's SAW/
 
 !/graphics/**
 
@@ -32,11 +32,13 @@
 /pre-computer/node_modules
 
 
-!/Resources/GameSources/mods/merger.ps1
-!/Resources/GameSources/mods/create_meta.ps1
-!/Resources/GameSources/mods/cleaner.ps1
-!/Resources/GameSources/mods/creation_date.txt
-!/Resources/GameSources/mods/merged_game_sources.json
-!/Resources/GameSources/mods/meta.txt
-/Resources/GameSources/zips
-Resources/libs/SimpleBar/simplebar.js
+!/public/GameSources/mods/merger.ps1
+!/public/GameSources/mods/create_meta.ps1
+!/public/GameSources/mods/cleaner.ps1
+!/public/GameSources/mods/creation_date.txt
+!/public/GameSources/mods/merged_game_sources.json
+!/public/GameSources/mods/meta.txt
+/public/GameSources/zips
+public/libs/SimpleBar/simplebar.js
+/node_modules
+/dist

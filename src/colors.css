@@ -1,0 +1,38 @@
+/* #region colors */
+td ul li span:not([no-color]) {
+  color: var(--stat-yellow);
+}
+
+.stat-yellow {
+  color: var(--stat-yellow) !important;
+}
+
+.stat-fuel {
+  color: var(--stat-fuel) !important;
+  text-shadow: var(--brighten-dark-text) !important
+}
+
+.stat-crew {
+  color: var(--stat-crew) !important;
+}
+
+.stat-dp {
+  color: var(--stat-dp) !important;
+}
+
+.stat-white {
+  color: var(--stat-white) !important;
+}
+
+.stat-cargo {
+  color: var(--stat-cargo) !important;
+}
+
+.stat-debuff {
+  color: var(--stat-debuff) !important;
+}
+
+.stat-gray {
+  color: var(--stat-gray) !important;
+  text-shadow: var(--brighten-dark-text) !important;
+}

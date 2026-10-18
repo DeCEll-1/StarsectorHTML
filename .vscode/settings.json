@@ -1,0 +1,10 @@
+{
+    "css.classNames.includeLanguages": {
+        "html": "html",
+        "svelte": "html",
+        "javascript": "javascript",
+        "typescript": "typescript"
+    },
+    "editor.tabSize": 2,
+    "git.ignoreLimitWarning": true
+}
