@@ -290,7 +290,7 @@ const WEAPON_HTML =
                                 navigator.clipboard.writeText(\`https:\/\/decell-1.github.io/StarsectorHTMLEmbeds/AutoGen/Embeds/\${current_id}_Weapons\`);
                                     showToaster(
                                         'Copied to clipboard!',
-                                        'Ship link has been copied to the clipboard.',
+                                        'Weapon link has been copied to the clipboard.',
                                         {img: EL.image.src}
                                     );
                                 ">v</span>
