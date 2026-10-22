@@ -12,11 +12,13 @@
   import { gameData } from "./lib/GameData";
   import { ViewStateFactory, ViewType, type ViewState } from "./lib/Viewtypes";
   import { navState } from "./lib/Navigation.svelte";
+  import { OverlayScrollbars, ClickScrollPlugin } from "overlayscrollbars";
 
   if (typeof window !== "undefined") {
     (window as any).gameData = gameData;
     (window as any).navState = navState;
   }
+  OverlayScrollbars.plugin(ClickScrollPlugin);
   //#endregion
 </script>
 
@@ -28,7 +30,10 @@
       .toArray()}
     bind:selectedMod={navState.selectedMod}
   />
-  <ElementList selectedMod={navState.selectedMod} bind:selectedView={navState.selectedView} />
+  <ElementList
+    selectedMod={navState.selectedMod}
+    bind:selectedView={navState.selectedView}
+  />
   {#if navState.selectedView.type == ViewType.None}
     <EmptyView></EmptyView>
   {:else if navState.selectedView.type === ViewType.Ship}

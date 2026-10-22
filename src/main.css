@@ -40,6 +40,8 @@
     --ui-blue-dark-light: #15414D;
     --ui-scanline-bg: black;
     --ui-scanline-fg: #051316;
+    --ui-text-light: #a9dcfd;
+    --ui-text-unimportant: #989898;
     --brighten-dark-text:
         0 0 0.5px currentColor,
         0 0 0.5px currentColor;
@@ -132,6 +134,7 @@ ul {
 .element-highlight {
     background-color: var(--ui-blue-dark-light) !important;
 }
+
 /* #region listslop */
 
 ul {
@@ -158,3 +161,94 @@ td ul li:last-child::after {
 
 /* #endregion */
 
+/* #region buttons */
+
+button:focus,
+button:focus-visible {
+    outline: 1px solid var(--ui-blue-light);
+    outline-offset: -1px;
+}
+
+button:hover,
+button:focus,
+button:focus-visible {
+    background-color: var(--ui-blue-dark);
+}
+
+/* #endregion */
+
+/* #region scrollbar */
+
+@property --handle-blue {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #E0FFEF44;
+}
+
+@property --track-blue {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #10303A;
+}
+
+@property --transition-speed {
+    syntax: "<time>";
+    inherits: true;
+    initial-value: 0.4s;
+}
+
+*{
+    scroll-behavior: smooth !important;
+}
+
+.os-scrollbar.starsector-scrollbar-theme {
+    --os-size: 8px;
+    --os-padding: 2px;
+    --os-track-border-radius: 4px;
+    --os-handle-border-radius: 4px;
+
+    --os-track-bg: rgba(0, 0, 0, 0.2);
+    --os-handle-bg: var(--ui-blue-dark);
+    --os-handle-bg-hover: var(--ui-blue-dark-light);
+    --os-handle-bg-active: #E0FFEFCC;
+
+    --track-blue: var(--ui-blue-dark);
+    --track-percent: 50%;
+
+    --handle-percent: 50%;
+}
+
+.os-scrollbar.starsector-scrollbar-theme .os-scrollbar-track {
+    background-color: var(--os-track-bg);
+    border-radius: var(--os-track-border-radius);
+
+    background-image: linear-gradient(90deg, black 0% 30%, var(--track-blue) 30% 70%, black 70% 100%);
+    transition: --track-blue var(--transition-speed) ease;
+}
+
+.os-scrollbar.starsector-scrollbar-theme:has(.os-scrollbar-handle:active) .os-scrollbar-track {
+    --track-blue: #E0FFEF44;
+}
+
+/* handle */
+.os-scrollbar.starsector-scrollbar-theme .os-scrollbar-handle {
+    background-color: var(--os-handle-bg);
+    border-radius: var(--os-handle-border-radius);
+    background-image: linear-gradient(90deg, transparent 0% 30%, var(--handle-blue) 30% 70%, transparent 70% 100%);
+    transition:
+        --handle-blue var(--transition-speed) ease,
+        background-color var(--transition-speed) ease;
+
+}
+
+.os-scrollbar.starsector-scrollbar-theme .os-scrollbar-handle:hover {
+    background-color: var(--os-handle-bg-hover);
+    --handle-blue: #E0FFEF88;
+}
+
+.os-scrollbar.starsector-scrollbar-theme .os-scrollbar-handle:active {
+    background-color: var(--os-handle-bg-active);
+    --handle-blue: #E0FFEFCC;
+}
+
+/* #endregion */

@@ -20,6 +20,8 @@
   },
   "dependencies": {
     "bootstrap": "^5.3.8",
-    "linq": "^4.0.3"
+    "linq": "^4.0.3",
+    "overlayscrollbars": "^2.16.0",
+    "overlayscrollbars-svelte": "^0.5.5"
   }
 }

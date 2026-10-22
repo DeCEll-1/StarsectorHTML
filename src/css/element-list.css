@@ -21,6 +21,8 @@
   margin: 0;
   padding: 0;
   list-style: none;
+  /* --os-size */
+  margin-right: 8px;
 }
 
 .element-list ul li button {
@@ -34,19 +36,12 @@
   cursor: default;
   user-select: none;
   /* border-radius: 9px; */
-  background-color: transparent;
   border: none;
   text-align: left;
 }
 
-.element-list ul li button:focus-visible {
-  outline: 1px solid var(--ui-blue-light);
-  outline-offset: -1px;
-}
-
-.element-list ul li button:hover,
-.element-list ul li button:focus-visible {
-  background-color: var(--ui-blue-dark);
+.element-list ul li button:not(:hover, :focus, :focus-visible) {
+  background-color: transparent;
 }
 
 .element-list ul li button div:has(> img) {
@@ -65,12 +60,12 @@
 
 .element-list ul li button div div:first-child {
   margin-top: 4px;
-  color: #a9dcfd;
+  color: var(--ui-text-light);
   margin-bottom: 4px;
 }
 
 .element-list ul li button div div:nth-child(2) {
-  color: #989898;
+  color: var(--ui-text-unimportant);
   max-width: 93%;
 }
 

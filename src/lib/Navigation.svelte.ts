@@ -1,6 +1,6 @@
 import { ViewStateFactory, type ViewState } from "./Viewtypes";
 import { gameData } from "./GameData";
-import { getShipCandidates } from "./Utils";
+import { getShipCandidates } from "./Views/ShipViewUtils";
 
 class NavigationState {
   selectedView = $state<ViewState>(ViewStateFactory.none);

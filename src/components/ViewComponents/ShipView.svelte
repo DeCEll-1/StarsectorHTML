@@ -16,6 +16,7 @@
     getSpritePath,
     getWeaponMounts,
   } from "../../lib/Views/ShipViewUtils";
+  import { OverlayScrollbarsComponent } from "overlayscrollbars-svelte";
 
   let {
     csv,
@@ -28,10 +29,13 @@
   } = $props();
 
   let headerText = $derived.by(() => {
-    return ship?.hullName;
+    // this order is probably corrent?
+    const name = firstNonEmpty(skin?.hullName, csv?.name, ship?.hullName);
+    return `${name}-class ${firstNonEmpty(skin?.hullDesignation, csv?.designation)}`;
   });
 
   let statsHeight = $state(0);
+  let upperSectionHeight = $state(0);
   let copied = $state(false);
 
   const sensorDict = { Frigate: 30, Destroyer: 60, Cruiser: 90, Capital: 150 };
@@ -53,16 +57,15 @@
     const defenseStats = getDefenseStats(
       csv,
       shieldType,
-      hasDefenseID,
-      right_click_system,
+      right_click_system
     );
 
     const system = gameData.ship_systems.find(
       (s: System) => firstNonEmpty(skin?.systemId, csv["system id"]) == s.id,
     );
-    const systemDesc = gameData.descriptions.find(
-      (s: Description) => s.id == system?.id,
-    )?.text1 ?? "undefined";
+    const systemDesc =
+      gameData.descriptions.find((s: Description) => s.id == system?.id)
+        ?.text1 ?? "undefined";
 
     const mounts = getWeaponMounts(ship, skin);
     const armaments = getArmaments(ship);
@@ -135,7 +138,10 @@
 
 <WrapperView {headerText}>
   <div class="item-view-content">
-    <div class="d-flex mb-4 justify-space-around align-stretch">
+    <div
+      class="d-flex mb-4 justify-space-around align-stretch"
+      bind:clientHeight={upperSectionHeight}
+    >
       <div class="ship-stats" bind:clientHeight={statsHeight}>
         <!-- info -->
         <div class="d-flex stats-header center mb-4">
@@ -321,9 +327,13 @@
                 <td>Hullmods:</td>
                 <td>
                   <ul>
-                    {#each shipView?.hullmods as hullmod}
-                      <li>{hullmod.name}</li>
-                    {/each}
+                    {#if shipView?.hullmods && shipView.hullmods.length > 0}
+                      {#each shipView?.hullmods as hullmod}
+                        <li>{hullmod.name}</li>
+                      {/each}
+                    {:else}
+                      <li>None</li>
+                    {/if}
                   </ul>
                 </td>
               </tr>
@@ -358,8 +368,11 @@
       </div>
     </div>
 
-    <div class="lower-content d-flex">
-      <div class="ship-lore">
+    <div class="lower-content d-block">
+      <div
+        class="ship-lore me-1"
+        style:height={`calc(100vh - (${upperSectionHeight}px + 57px))`}
+      >
         <div
           class="ship-class mb-2"
           data-class-name={shipView?.designType}
@@ -367,23 +380,29 @@
         >
           Design Type:&nbsp;
         </div>
-
-        <p>
-          {#each shipView?.description as line, i}
-            {#if i > 0}
-              <br />
-            {/if}
-            {line}
-          {/each}
-        </p>
+        <OverlayScrollbarsComponent
+          options={{
+            scrollbars: {
+              theme: "starsector-scrollbar-theme",
+              autoHide: "never",
+            },
+          }}
+          style="height: 80%;"
+        >
+          <p>
+            {#each shipView?.description as line, i}
+              {#if i > 0}
+                <br />
+              {/if}
+              {line}
+            {/each}
+          </p>
+        </OverlayScrollbarsComponent>
         <br />
         <p class="mb-0 ship-price" data-price={shipView?.price}>
           Base value: &nbsp;
         </p>
       </div>
-
-      <!-- <div class="related-entries header-before">
-      </div> -->
     </div>
   </div>
 </WrapperView>
@@ -462,7 +481,7 @@
   .ship-lore {
     color: white;
     text-shadow: none;
-    width: 95%;
+    width: 100%;
     border: 1px solid #15414d;
     padding: 8px;
     box-sizing: border-box;

@@ -4,7 +4,7 @@
 -->
 
 <script lang="ts">
-    import { resolve_mod_image_path } from "../lib/Utils";
+    import { resolve_mod_icon, resolve_mod_image_path } from "../lib/Utils";
     import "../css/element-list.css"
 
 
@@ -14,7 +14,7 @@
     selectedMod = mod;
   }
 </script>
-
+<!-- TODO: implement accessability thingamajigs like go to bottom go to top here -->
 <div class="offset codex-border codex-border-open-right element-list d-flex">
   <div class="header rounded-start-1">Indexed Mods</div>
   <ul>
@@ -28,8 +28,8 @@
         >
           <div>
             <img
-              alt={resolve_mod_image_path(mod.icon)}
-              src={resolve_mod_image_path(mod.icon)}
+              alt={resolve_mod_icon(mod.icon, mod)}
+              src={resolve_mod_icon(mod.icon, mod)}
             />
           </div>
           <div>

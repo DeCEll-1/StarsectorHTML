@@ -7,7 +7,7 @@
   }: { headerText: string | undefined; children?: Snippet } = $props();
 </script>
 
-<div class="codex-border codex-border-open-left overflow-scroll" style="max-height: 100vh;">
+<div class="codex-border codex-border-open-left" style="max-height: 100vh;">
   <div class="header zaza-spacing">{headerText ?? "undefined"}</div>
   <div class="zaza-spacing">
     {@render children?.()}

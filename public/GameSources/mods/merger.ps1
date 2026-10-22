@@ -214,7 +214,7 @@ function ConvertFrom-GameConfigJson {
     }
 }
 
-$OutputFile = "./merged_game_sources.json"
+$OutputFile = "../../../src/lib/data/merged_game_sources.json"
 $Columns =
 # ship_data
 "name", "id", "designation", "tech/manufacturer", "system id", "fleet pts", "hitpoints", "armor rating", "max flux", "8/6/5/4%", "flux dissipation", "ordnance points", "fighter bays", "max speed", "acceleration", "deceleration", "max turn rate", "turn acceleration", "mass", "shield type", "defense id", "shield arc", "shield upkeep", "shield efficiency", "phase cost", "phase upkeep", "min crew", "max crew", "cargo", "fuel", "fuel/ly", "range", "max burn", "base value", "cr %/day", "CR to deploy", "peak CR sec", "CR loss/sec", "supplies/rec", "supplies/mo", "c/s", "c/f", "f/s", "f/f", "crew/s", "crew/f", "hints", "tags", "logistics n/a reason", "codex variant id", "rarity", "breakProb", "minPieces", "maxPieces", "travel drive", "number",
@@ -267,6 +267,7 @@ $groupedData["skins"] = @()
 $groupedData["weapons"] = @()
 $groupedData["projectiles"] = @()
 $groupedData["variants"] = @()
+$groupedData["sprites"] = @()
 
 foreach ($mod in $mods) {
     $modData = @{}
@@ -276,7 +277,9 @@ foreach ($mod in $mods) {
     $weaponFiles = Get-ChildItem -Path $mod -Filter *.wpn -Recurse
     $projectileFiles = Get-ChildItem -Path $mod -Filter *.proj -Recurse
     $variantFiles = Get-ChildItem -Path $mod -Filter *.variant -Recurse
-    
+    $spriteFiles = Get-ChildItem -Path $mod -Include *.png, *.jpg, *.jpeg, *.webp -Recurse
+
+    #region modinfo
     $mod_info_object = ((Get-Content -Path ($mod.FullName + "\mod_info.json") -Raw) | Remove-HashCommentsFromJson | Remove-FloatSuffix | ConvertFrom-Json)
     $lunaConfigPath = $mod.FullName + "\" + "\data\config\LunaSettingsConfig.json"
     if ([System.IO.File]::Exists($lunaConfigPath)) {
@@ -284,7 +287,9 @@ foreach ($mod in $mods) {
         $mod_info_object | Add-Member -NotePropertyName icon -NotePropertyValue (($mod.Name + ("/" + [regex]::new('"iconPath"\s*:\s*"([^"#]*)"').Match($lunaConfigFileContent).Groups[1].Value))) -Force
     }
     $mod_info_object | Add-Member -NotePropertyName directory -NotePropertyValue $mod.Name
+    #endregion
 
+    #region colors
     $modData = $mod_info_object
     if ([System.IO.File]::Exists($mod.FullName + "\data\config\settings.json")) {
         try { 
@@ -298,6 +303,7 @@ foreach ($mod in $mods) {
             Write-Warning "Failed to process Colors Settings: $($mod) — $_"
         }
     }
+    #endregion
 
     #region csvs
     foreach ($file in $csvFiles) {
@@ -364,6 +370,15 @@ foreach ($mod in $mods) {
     $groupedData["variants"] += $variantFiles | ConvertFrom-GameConfigJson -TypeName "VARIANT" -OwnerId $mod_info_object.id
     #endregion
     
+    # mod_info_object.id : $file.relativePath
+
+    $groupedData["sprites"] += $spriteFiles | ForEach-Object {
+        return [pscustomobject]@{
+            "owner" = $mod_info_object.id
+            "relativePath" = [System.IO.Path]::GetRelativePath($mod.FullName, $_.FullName).Replace("\", "/")
+        }
+    }
+
     $groupedData["mods"] += $modData
 }
 

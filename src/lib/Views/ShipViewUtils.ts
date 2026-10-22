@@ -3,6 +3,7 @@
 import Enumerable from "linq";
 import { gameData } from "../GameData";
 import { capitalize, firstNonEmpty, resolve_mod_image_path } from "../Utils";
+import { substringLevenshtein } from "../Levenshtein";
 
 export function getShipByWingId(wingId: string): ShipCSV | undefined {
   const variantID = gameData.wing_data.find((s) => s.id == wingId)?.variant;
@@ -10,7 +11,7 @@ export function getShipByWingId(wingId: string): ShipCSV | undefined {
   return gameData.ship_data.find((s) => s.id == variant?.hullId);
 }
 
-export function getDefenseStats(csv: ShipCSV, shieldType: string, hasDefenseID: boolean, right_click_system?: System) {
+export function getDefenseStats(csv: ShipCSV, shieldType: string, right_click_system?: System) {
   let defenseType = capitalize(
     right_click_system?.name ??
     {
@@ -21,11 +22,13 @@ export function getDefenseStats(csv: ShipCSV, shieldType: string, hasDefenseID: 
     }[shieldType] ?? "—"
   );
 
+  
+
   let prop1Name = "\u00A0", prop1Val = "";
   let prop2Name = "\u00A0", prop2Val = "";
   let prop3Name = "\u00A0", prop3Val = "";
 
-  if ((shieldType === "FRONT" || shieldType === "OMNI") && !hasDefenseID) {
+  if ((shieldType === "FRONT" || shieldType === "OMNI") && !right_click_system) {
     prop1Name = "Shield arc";
     prop1Val = csv["shield arc"] ?? "";
     prop2Name = "Shield upkeep/sec";
@@ -34,12 +37,12 @@ export function getDefenseStats(csv: ShipCSV, shieldType: string, hasDefenseID: 
       : "";
     prop3Name = "Shield flux/damage";
     prop3Val = csv["shield efficiency"] ? parseFloat(csv["shield efficiency"]).toFixed(1) : "";
-  } else if (shieldType === "PHASE" && hasDefenseID) {
+  } else if (shieldType === "PHASE" && right_click_system?.isPhaseCloak == "TRUE") {
     const flux = Number(csv["max flux"]) ?? 0;
     prop1Name = "Cloak activation cost";
-    prop1Val = csv["phase cost"] ? String(Number(csv["phase cost"]) * flux) : "";
+    prop1Val = csv["phase cost"] ? String((Number(csv["phase cost"]) * flux).toFixed(2)) : "";
     prop2Name = "Cloak upkeep/sec";
-    prop2Val = csv["phase upkeep"] ? String(Number(csv["phase upkeep"]) * flux) : "";
+    prop2Val = csv["phase upkeep"] ? String((Number(csv["phase upkeep"]) * flux).toFixed(2)) : "";
   }
 
   return { defenseType, prop1Name, prop1Val, prop2Name, prop2Val, prop3Name, prop3Val };
@@ -137,4 +140,81 @@ export function getSpritePath(ship: ShipJSON, skin?: Skin) {
   const modOwner = skin ? skin.owner : ship.owner;
   const mod = gameData.mods.find((s: any) => s.id == modOwner);
   return resolve_mod_image_path(spritePath, mod!);
+}
+
+
+const MAX_DISTANCE = 2;
+
+function isShipLegit(args: { ship?: ShipJSON, skin?: Skin, modId?: string, filter?: string; } = {}) {
+  args = { ...{ modId: "starsector-core", filter: "" }, ...args };
+  const owner = args.skin?.owner ?? args.ship?.owner;
+  if (!args.ship) return false;
+  if (owner !== args.modId) return false;
+  if (args.ship.hullSize === "FIGHTER") return false;
+  if (args.skin?.restoreToBaseHull) return false;
+  const csvId = args.skin ? args.skin.baseHullId : args.ship.hullId;
+  const csv = gameData.ship_data.find(s => s.id === csvId);
+  if (!csv) return false;
+  if (csv.hints.includes("HIDE_IN_CODEX")) return false;
+  if (csv.hints.includes("STATION")) return false;
+  if (csv.name.startsWith("#")) return false;
+  if (args.filter) {
+    const nameToSearch = args.skin ? args.skin.hullName : csv.name;
+    if (substringLevenshtein(nameToSearch, args.filter) > MAX_DISTANCE) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export type ShipCandidate =
+  | {
+    type: 'ship';
+    ship: ShipJSON;
+    skin?: never;
+    csv: ShipCSV;
+  }
+  | {
+    type: 'skin';
+    ship: ShipJSON;
+    skin: Skin;
+    csv: ShipCSV;
+  };
+export function getShipCandidates(filter: string, modID: string, onlyFirst?: boolean) {
+  const candidates: ShipCandidate[] = [];
+
+  //#region add ships to the list
+  for (const ship of gameData.ships) {
+    if (!isShipLegit({ ship: ship, modId: modID, filter: filter })) continue;
+
+    const csv = gameData.ship_data.find(s => s.id === ship.hullId)!;
+    candidates.push({ type: 'ship', ship, csv });
+    if (onlyFirst)
+      break;
+  }
+  //#endregion
+
+  //#region add skins to the list
+  for (const skin of gameData.skins) {
+    const ship = gameData.ships.find(s => s.hullId === skin.baseHullId);
+    if (!ship) continue; // if base hulls missing skip
+
+    if (!isShipLegit({ ship: ship, skin, modId: modID, filter })) continue;
+
+    const csv = gameData.ship_data.find(s => s.id === skin.baseHullId)!;
+    candidates.push({ type: 'skin', skin, ship, csv });
+    if (onlyFirst)
+      break;
+  }
+  //#endregion
+
+  //#region sort
+  candidates.sort((a, b) => {
+    const nameA = firstNonEmpty(a.csv?.name, a.skin?.hullName, a.ship?.hullName);
+    const nameB = firstNonEmpty(b.csv?.name, b.skin?.hullName, b.ship?.hullName);
+    return nameA.localeCompare(nameB);
+  });
+  //#endregion
+
+  return candidates;
 }

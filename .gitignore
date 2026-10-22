@@ -18,7 +18,7 @@
 
 !/graphics/**
 
-**/data/
+/public/**/data/
 
 # uncomment these after implementing them
 # **/hullmods/

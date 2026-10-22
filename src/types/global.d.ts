@@ -15,6 +15,9 @@ declare global {
         wing_data              : Wing[];
         projectiles            : Projectile[];
         mods                   : ModInfo[];
+        modsMap                : Map<string, ModInfo>;
         variants               : Variant[];
+        sprites                : Sprite[];
+        spritesMap             : Map<string, ModInfo[]>;
     }
 }
